@@ -1,0 +1,21 @@
+{
+	"name": "backend",
+	"version": "1.0.0",
+	"main": "index.js",
+	"license": "MIT",
+	"scripts": {
+		"bot:dev": "bun --watch src/app.ts"
+	},
+	"dependencies": {
+		"@langchain/community": "^0.3.49",
+		"@langchain/core": "^0.3.66",
+		"@langchain/langgraph": "^0.3.10",
+		"@langchain/openai": "^0.6.2",
+		"dotenv": "^17.2.0",
+		"grammy": "^1.37.0",
+		"winston": "^3.17.0"
+	},
+	"devDependencies": {
+		"typescript": "^5.8.3"
+	}
+}
