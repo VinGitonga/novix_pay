@@ -1,0 +1,1 @@
+export const THIRDWEB_CLIENT_ID=import.meta.env.VITE_THIRDWEB_CLIENT_ID
