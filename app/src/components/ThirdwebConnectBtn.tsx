@@ -1,5 +1,4 @@
 import { useThirdwebStore } from "@/hooks/store/useThirdwebStore";
-import { Button } from "@heroui/react";
 import { defineChain } from "thirdweb";
 import { ConnectButton } from "thirdweb/react";
 import { createWallet } from "thirdweb/wallets";
