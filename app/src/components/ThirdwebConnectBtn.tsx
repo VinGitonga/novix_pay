@@ -1,4 +1,5 @@
 import { useThirdwebStore } from "@/hooks/store/useThirdwebStore";
+import { Button } from "@heroui/react";
 import { defineChain } from "thirdweb";
 import { ConnectButton } from "thirdweb/react";
 import { createWallet } from "thirdweb/wallets";
@@ -8,7 +9,7 @@ const wallets = [createWallet("io.metamask")];
 
 const ThirdwebConnectBtn = () => {
 	const { client } = useThirdwebStore();
-	return <ConnectButton client={client!} wallets={wallets} connectModal={{ size: "compact" }} chain={defineChain(etherlinkTestnet.id)} />;
+	return client ? <ConnectButton client={client!} wallets={wallets} connectModal={{ size: "compact" }} chain={defineChain(etherlinkTestnet.id)} /> : null;
 };
 
 export default ThirdwebConnectBtn;
