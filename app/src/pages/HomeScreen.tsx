@@ -3,7 +3,7 @@ import ThirdwebConnectBtn from "@/components/ThirdwebConnectBtn";
 import { CONTRACT_ADDRESS } from "@/constants";
 import { recurringPaymentABI } from "@/contracts/abi";
 import { useThirdwebStore } from "@/hooks/store/useThirdwebStore";
-import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from "@heroui/react";
+import { addToast, Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from "@heroui/react";
 import { defineChain, getContract, prepareContractCall, readContract, sendAndConfirmTransaction, toWei, waitForReceipt, type ThirdwebClient } from "thirdweb";
 import { etherlinkTestnet } from "viem/chains";
 import { WalletIcon } from "lucide-react";
@@ -71,7 +71,7 @@ const HomeScreen = () => {
 };
 
 const SchedulePaymentModal = ({ client, account }: { client: ThirdwebClient; account: Account }) => {
-	const { isOpen, onOpen, onOpenChange } = useDisclosure();
+	const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
 
 	const formMethods = useForm<z.infer<typeof formObject>>({
 		resolver: zodResolver(formObject),
@@ -143,7 +143,21 @@ const SchedulePaymentModal = ({ client, account }: { client: ThirdwebClient; acc
 				transactionHash: transaction.transactionHash,
 			});
 
-			console.log("Schedule payment receipt:", receipt);
+			const onClickView = (hash: string) => {
+				window.open(`https://testnet.explorer.etherlink.com/tx/${hash}`, "_blank")
+			}
+
+			addToast({
+				title: "Payment scheduled successfully",
+				color: "success",
+				endContent: (
+					<Button color="secondary" size="sm" variant="flat" onPress={() => onClickView(receipt.transactionHash)}>
+						View Transaction
+					</Button>
+				)
+			});
+
+			onClose();
 		} catch (err) {
 			console.error("Error:", err);
 			const errorParsed = extractErrorDetails(err, recurringPaymentABI);
