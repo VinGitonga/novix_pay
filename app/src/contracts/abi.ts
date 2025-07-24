@@ -1,5 +1,44 @@
 export const recurringPaymentABI = [
 	{
+		inputs: [
+			{
+				internalType: "uint256",
+				name: "paymentId",
+				type: "uint256",
+			},
+		],
+		name: "cancelPayment",
+		outputs: [],
+		stateMutability: "nonpayable",
+		type: "function",
+	},
+	{
+		inputs: [
+			{
+				internalType: "uint256",
+				name: "paymentId",
+				type: "uint256",
+			},
+		],
+		name: "depositFunds",
+		outputs: [],
+		stateMutability: "payable",
+		type: "function",
+	},
+	{
+		inputs: [
+			{
+				internalType: "uint256",
+				name: "paymentId",
+				type: "uint256",
+			},
+		],
+		name: "executePayment",
+		outputs: [],
+		stateMutability: "nonpayable",
+		type: "function",
+	},
+	{
 		inputs: [],
 		stateMutability: "nonpayable",
 		type: "constructor",
@@ -74,6 +113,13 @@ export const recurringPaymentABI = [
 		],
 		name: "OwnershipTransferred",
 		type: "event",
+	},
+	{
+		inputs: [],
+		name: "pause",
+		outputs: [],
+		stateMutability: "nonpayable",
+		type: "function",
 	},
 	{
 		anonymous: false,
@@ -182,174 +228,17 @@ export const recurringPaymentABI = [
 		type: "event",
 	},
 	{
-		anonymous: false,
-		inputs: [],
-		name: "Pong",
-		type: "event",
-	},
-	{
-		inputs: [
-			{
-				internalType: "uint256",
-				name: "paymentId",
-				type: "uint256",
-			},
-		],
-		name: "cancelPayment",
-		outputs: [],
-		stateMutability: "nonpayable",
-		type: "function",
-	},
-	{
-		inputs: [
-			{
-				internalType: "uint256",
-				name: "paymentId",
-				type: "uint256",
-			},
-		],
-		name: "depositFunds",
-		outputs: [],
-		stateMutability: "payable",
-		type: "function",
-	},
-	{
-		inputs: [
-			{
-				internalType: "uint256",
-				name: "paymentId",
-				type: "uint256",
-			},
-		],
-		name: "executePayment",
-		outputs: [],
-		stateMutability: "nonpayable",
-		type: "function",
-	},
-	{
-		inputs: [],
-		name: "getDuePayments",
-		outputs: [
-			{
-				internalType: "uint256[]",
-				name: "",
-				type: "uint256[]",
-			},
-		],
-		stateMutability: "view",
-		type: "function",
-	},
-	{
-		inputs: [],
-		name: "owner",
-		outputs: [
-			{
-				internalType: "address",
-				name: "",
-				type: "address",
-			},
-		],
-		stateMutability: "view",
-		type: "function",
-	},
-	{
-		inputs: [],
-		name: "pause",
-		outputs: [],
-		stateMutability: "nonpayable",
-		type: "function",
-	},
-	{
-		inputs: [],
-		name: "paused",
-		outputs: [
-			{
-				internalType: "bool",
-				name: "",
-				type: "bool",
-			},
-		],
-		stateMutability: "view",
-		type: "function",
-	},
-	{
-		inputs: [],
-		name: "paymentCount",
-		outputs: [
-			{
-				internalType: "uint256",
-				name: "",
-				type: "uint256",
-			},
-		],
-		stateMutability: "view",
-		type: "function",
-	},
-	{
-		inputs: [
-			{
-				internalType: "uint256",
-				name: "",
-				type: "uint256",
-			},
-		],
-		name: "payments",
-		outputs: [
-			{
-				internalType: "address",
-				name: "payer",
-				type: "address",
-			},
-			{
-				internalType: "address",
-				name: "provider",
-				type: "address",
-			},
-			{
-				internalType: "uint256",
-				name: "amount",
-				type: "uint256",
-			},
-			{
-				internalType: "address",
-				name: "token",
-				type: "address",
-			},
-			{
-				internalType: "uint256",
-				name: "dueDate",
-				type: "uint256",
-			},
-			{
-				internalType: "bool",
-				name: "isRecurring",
-				type: "bool",
-			},
-			{
-				internalType: "uint256",
-				name: "interval",
-				type: "uint256",
-			},
-			{
-				internalType: "bool",
-				name: "executed",
-				type: "bool",
-			},
-			{
-				internalType: "bool",
-				name: "active",
-				type: "bool",
-			},
-		],
-		stateMutability: "view",
-		type: "function",
-	},
-	{
 		inputs: [],
 		name: "ping",
 		outputs: [],
 		stateMutability: "nonpayable",
 		type: "function",
+	},
+	{
+		anonymous: false,
+		inputs: [],
+		name: "Pong",
+		type: "event",
 	},
 	{
 		inputs: [],
@@ -420,4 +309,206 @@ export const recurringPaymentABI = [
 		stateMutability: "payable",
 		type: "receive",
 	},
-] as const
+	{
+		inputs: [],
+		name: "getDuePayments",
+		outputs: [
+			{
+				internalType: "uint256[]",
+				name: "",
+				type: "uint256[]",
+			},
+		],
+		stateMutability: "view",
+		type: "function",
+	},
+	{
+		inputs: [
+			{
+				internalType: "address",
+				name: "user",
+				type: "address",
+			},
+			{
+				internalType: "bool",
+				name: "upcomingOnly",
+				type: "bool",
+			},
+		],
+		name: "getUserPayments",
+		outputs: [
+			{
+				components: [
+					{
+						internalType: "uint256",
+						name: "id",
+						type: "uint256",
+					},
+					{
+						internalType: "address",
+						name: "payer",
+						type: "address",
+					},
+					{
+						internalType: "address",
+						name: "provider",
+						type: "address",
+					},
+					{
+						internalType: "uint256",
+						name: "amount",
+						type: "uint256",
+					},
+					{
+						internalType: "address",
+						name: "token",
+						type: "address",
+					},
+					{
+						internalType: "string",
+						name: "tokenSymbol",
+						type: "string",
+					},
+					{
+						internalType: "uint256",
+						name: "dueDate",
+						type: "uint256",
+					},
+					{
+						internalType: "bool",
+						name: "isRecurring",
+						type: "bool",
+					},
+					{
+						internalType: "uint256",
+						name: "interval",
+						type: "uint256",
+					},
+					{
+						internalType: "bool",
+						name: "executed",
+						type: "bool",
+					},
+					{
+						internalType: "bool",
+						name: "active",
+						type: "bool",
+					},
+				],
+				internalType: "struct RecurringPayments.Payment[]",
+				name: "",
+				type: "tuple[]",
+			},
+		],
+		stateMutability: "view",
+		type: "function",
+	},
+	{
+		inputs: [],
+		name: "owner",
+		outputs: [
+			{
+				internalType: "address",
+				name: "",
+				type: "address",
+			},
+		],
+		stateMutability: "view",
+		type: "function",
+	},
+	{
+		inputs: [],
+		name: "paused",
+		outputs: [
+			{
+				internalType: "bool",
+				name: "",
+				type: "bool",
+			},
+		],
+		stateMutability: "view",
+		type: "function",
+	},
+	{
+		inputs: [],
+		name: "paymentCount",
+		outputs: [
+			{
+				internalType: "uint256",
+				name: "",
+				type: "uint256",
+			},
+		],
+		stateMutability: "view",
+		type: "function",
+	},
+	{
+		inputs: [
+			{
+				internalType: "uint256",
+				name: "",
+				type: "uint256",
+			},
+		],
+		name: "payments",
+		outputs: [
+			{
+				internalType: "uint256",
+				name: "id",
+				type: "uint256",
+			},
+			{
+				internalType: "address",
+				name: "payer",
+				type: "address",
+			},
+			{
+				internalType: "address",
+				name: "provider",
+				type: "address",
+			},
+			{
+				internalType: "uint256",
+				name: "amount",
+				type: "uint256",
+			},
+			{
+				internalType: "address",
+				name: "token",
+				type: "address",
+			},
+			{
+				internalType: "string",
+				name: "tokenSymbol",
+				type: "string",
+			},
+			{
+				internalType: "uint256",
+				name: "dueDate",
+				type: "uint256",
+			},
+			{
+				internalType: "bool",
+				name: "isRecurring",
+				type: "bool",
+			},
+			{
+				internalType: "uint256",
+				name: "interval",
+				type: "uint256",
+			},
+			{
+				internalType: "bool",
+				name: "executed",
+				type: "bool",
+			},
+			{
+				internalType: "bool",
+				name: "active",
+				type: "bool",
+			},
+		],
+		stateMutability: "view",
+		type: "function",
+	},
+] as const;

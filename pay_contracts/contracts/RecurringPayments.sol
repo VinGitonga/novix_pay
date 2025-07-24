@@ -1,18 +1,22 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.28;
 
 // Use console.log for Hardhat debugging
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./IERC20WithSymbol.sol";
 
 contract RecurringPayments is ReentrancyGuard, Ownable {
+    
     struct Payment {
+        uint256 id;
         address payer;
         address provider;
         uint256 amount;
         address token;
+        string tokenSymbol;
         uint256 dueDate;
         bool isRecurring;
         uint256 interval;
@@ -65,13 +69,26 @@ contract RecurringPayments is ReentrancyGuard, Ownable {
             require(interval >= 1 days, "Interval must be at least 1 day");
         }
 
+        string memory tokenSymbol;
+        if (token == address(0)) {
+            tokenSymbol = "ETH";
+        } else {
+            try IERC20WithSymbol(token).symbol() returns (string memory symbol) {
+                tokenSymbol = symbol;
+            } catch {
+                tokenSymbol = "UNKNOWN";
+            }
+        }
+
         paymentCount++;
 
         payments[paymentCount] = Payment({
+            id: paymentCount,
             payer: msg.sender,
             provider: provider,
             amount: amount,
             token: token,
+            tokenSymbol: tokenSymbol,
             dueDate: dueDate,
             isRecurring: isRecurring,
             interval: interval,
@@ -84,7 +101,16 @@ contract RecurringPayments is ReentrancyGuard, Ownable {
             // Eth Payment
             require(msg.value >= amount, "Insufficient ETH sent");
         } else {
-            IERC20(token).transferFrom(msg.sender, address(this), amount);
+            require(
+                IERC20(token).allowance(msg.sender, address(this)) >= amount,
+                "Insufficient token allowance"
+            );
+            bool success = IERC20(token).transferFrom(
+                msg.sender,
+                address(this),
+                amount
+            );
+            require(success, "Token transfer failed");
         }
 
         emit PaymentScheduled(
@@ -202,24 +228,68 @@ contract RecurringPayments is ReentrancyGuard, Ownable {
         emit FundsDeposited(paymentId, amount, payment.token);
     }
 
-    function getDuePayments() external view returns (uint256[] memory) {
-        uint256[] memory duePayments = new uint256[](paymentCount);
+    // Get all payments for a user
+    function getUserPayments(address user, bool upcomingOnly) external view returns (Payment[] memory) {
+        // First pass: count matching payments
         uint256 count = 0;
+        for (uint256 i = 1; i <= paymentCount; i++) {
+            if (payments[i].payer == user) {
+                if (upcomingOnly) {
+                    if (payments[i].active && !payments[i].executed) {
+                        count++;
+                    }
+                } else {
+                    count++;
+                }
+            }
+        }
 
-        for (uint256 i = 0; i <= paymentCount; i++) {
+        // Second pass: populate result array
+        Payment[] memory result = new Payment[](count);
+        uint256 index = 0;
+        for (uint256 i = 1; i <= paymentCount; i++) {
+            if (payments[i].payer == user) {
+                if (upcomingOnly) {
+                    if (payments[i].active && !payments[i].executed) {
+                        result[index] = payments[i];
+                        index++;
+                    }
+                } else {
+                    result[index] = payments[i];
+                    index++;
+                }
+            }
+        }
+
+        return result;
+    }
+
+    // Get due payments
+    function getDuePayments() external view returns (uint256[] memory) {
+        // First pass: count due payments
+        uint256 count = 0;
+        for (uint256 i = 1; i <= paymentCount; i++) {
             if (
                 payments[i].dueDate <= block.timestamp &&
                 !payments[i].executed &&
                 payments[i].active
             ) {
-                duePayments[count] = i;
                 count++;
             }
         }
 
+        // Second pass: populate result array
         uint256[] memory result = new uint256[](count);
-        for (uint256 i = 0; i < count; i++) {
-            result[i] = duePayments[i];
+        uint256 index = 0;
+        for (uint256 i = 1; i <= paymentCount; i++) {
+            if (
+                payments[i].dueDate <= block.timestamp &&
+                !payments[i].executed &&
+                payments[i].active
+            ) {
+                result[index] = i;
+                index++;
+            }
         }
 
         return result;
@@ -227,7 +297,7 @@ contract RecurringPayments is ReentrancyGuard, Ownable {
 
     // Emergency stop to pause contract
     bool public paused;
-    modifier whenNoPaused(){
+    modifier whenNoPaused() {
         require(!paused, "Contract is paused");
         _;
     }
