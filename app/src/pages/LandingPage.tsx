@@ -4,7 +4,7 @@ import { RxArrowTopRight } from "react-icons/rx";
 import { type ReactNode } from "react";
 import { CiGlobe } from "react-icons/ci";
 import ThirdwebConnectBtn from "@/components/ThirdwebConnectBtn";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { Button, cn } from "@heroui/react";
 import { useAccountStore } from "@/hooks/store/useAccountStore";
 import GetStartedModal from "@/components/modals/GetStartedModal";
@@ -28,6 +28,7 @@ interface StepItemProps {
 
 const LandingPage = () => {
 	const { account } = useAccountStore();
+	const navigate = useNavigate()
 	return (
 		<div className="min-h-screen overflow-y-auto w-screen text-white bg-[#130D26] pt-4">
 			<div className="mt-2 flex items-center justify-between px-20">
@@ -55,6 +56,7 @@ const LandingPage = () => {
 					<div className="mt-5 flex items-center gap-3">
 						<ThirdwebConnectBtn />
 						{!account && <GetStartedModal />}
+						{account && <Button onPress={() => navigate("/app")}>Go to Dashboard</Button>}
 					</div>
 				</div>
 				<div className="col-auto md:col-span-4">
