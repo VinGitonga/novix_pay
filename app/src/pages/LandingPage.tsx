@@ -5,7 +5,7 @@ import { type ReactNode } from "react";
 import { CiGlobe } from "react-icons/ci";
 import ThirdwebConnectBtn from "@/components/ThirdwebConnectBtn";
 import { Link } from "react-router";
-import { cn } from "@heroui/react";
+import { Button, cn } from "@heroui/react";
 
 interface HomeLinkProps {
 	isActive?: boolean;
@@ -39,18 +39,19 @@ const LandingPage = () => {
 						<ThirdwebConnectBtn />
 					</div>
 				</div>
-			</div>
+			</div> 
 			<div className="mt-2 grid grid-cols-1 md:grid-cols-8 pl-20">
 				<div className="col-auto md:col-span-4 mt-12 space-y-10">
 					<div className="text-6xl font-bold">
-						<span>Join the Chama Revolution!</span>
-						<span className="text-transparent bg-gradient-to-tr bg-clip-text from-[#FFFFFF] to-[#FF6106]"> Save, Lend, Invest Together!</span>
+						<span>Pay, Get Paid with USDC</span>
+						<span className="text-transparent bg-gradient-to-tr bg-clip-text from-[#FFFFFF] to-[#FF6106]"> Setup all your payments in one place</span>
 					</div>
 					<div className="mt-8">
-						<p className="text-lg">Modernize group finance with Nova's decentralized platform. Pool funds, vote fairly, and grow wealth as a community</p>
+						<p className="text-lg">Get started with a unified, secure, and developer-friendly platform for on-chain payments and monetization.</p>
 					</div>
-					<div className="mt-5">
+					<div className="mt-5 flex items-center gap-3">
 						<ThirdwebConnectBtn />
+						<Button>Get Started</Button>
 					</div>
 				</div>
 				<div className="col-auto md:col-span-4">
@@ -63,7 +64,7 @@ const LandingPage = () => {
 				</div>
 				<div className="w-full relative z-20">
 					<div className="text-center space-y-4">
-						<h1 className="text-4xl font-semibold">Why Choose Nova?</h1>
+						<h1 className="text-4xl font-semibold">Why Choose Novix Pay?</h1>
 						<p className="text-lg px-10">
 							Nova brings the traditional chama model to the blockchain. Save for shared goals, lend with fairness, and invest in bold ideas—all with the trust of DeFi. Built for Base Sepolia's secure
 							testnet, Nova makes group finance accessible with just a few clicks.
