@@ -14,7 +14,10 @@ interface IApiErrorResponse {
 
 export type IApiResponse<T = any> = IApiSuccessResponse<T> | IApiErrorResponse;
 
-export const enum IApiEndpoint {}
+export const enum IApiEndpoint {
+	CREATE_ACCOUNT = "account/create",
+	GET_ACCOUNT_BY_WALLET ="account/get/by-wallet"
+}
 
 export interface IMethodParams {
 	endpoint: IApiEndpoint;

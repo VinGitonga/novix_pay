@@ -4,6 +4,12 @@ import AppInput from "../forms/AppInput";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import AppSwitch from "../forms/AppSwitch";
+import { useState } from "react";
+import useAccountUtils from "@/hooks/useAccountUtils";
+import { tryCatch } from "@/helpers/try-catch";
+import { useActiveAccount } from "thirdweb/react";
+import { toast } from "sonner";
+import { useAccountStore } from "@/hooks/store/useAccountStore";
 
 const formObject = z.object({
 	username: z.string().min(1, "Your preffered username"),
@@ -13,6 +19,11 @@ const formObject = z.object({
 
 const GetStartedModal = () => {
 	const { isOpen, onClose, onOpenChange, onOpen } = useDisclosure();
+	const [isLoading, setIsLoading] = useState<boolean>(false);
+
+	const { createAccount } = useAccountUtils();
+	const account = useActiveAccount();
+	const { setAccount } = useAccountStore();
 
 	const formMethods = useForm<z.infer<typeof formObject>>({
 		resolver: zodResolver(formObject),
@@ -29,7 +40,30 @@ const GetStartedModal = () => {
 		control,
 	} = formMethods;
 
-	const onSubmit = handleSubmit(async (data) => {});
+	const onSubmit = handleSubmit(async (data) => {
+		const info = {
+			...data,
+			wallet_address: account?.address!,
+		};
+		setIsLoading(true);
+		const { data: resp, error } = await tryCatch(createAccount(info));
+
+		if (error) {
+			toast.error("Unable to create an account");
+			setIsLoading(false);
+			return;
+		}
+
+		if (resp?.status === "success") {
+			toast.success("Account created successfully");
+			onClose();
+			setAccount(resp.data!);
+			setIsLoading(false);
+		} else {
+			toast.error("Unable to create an account");
+			setIsLoading(false);
+		}
+	});
 	return (
 		<>
 			<Button onPress={onOpen}>Get Started</Button>
@@ -42,14 +76,14 @@ const GetStartedModal = () => {
 								<ModalBody>
 									<AppInput label={"Username"} control={control} error={formErrors.username} name="username" placeholder="drsean" labelPlacement="inside" />
 									<AppInput label={"Telegram Username"} control={control} error={formErrors.tg_username} name="tg_username" placeholder="drsean" labelPlacement="inside" />
-                                    <AppSwitch label="Are your a provider" name="isProvider" control={control} error={formErrors.isProvider} />
+									<AppSwitch label="Are your a provider" name="isProvider" control={control} error={formErrors.isProvider} />
 								</ModalBody>
 								<ModalFooter>
 									<Button color="danger" variant="flat" type="button" onPress={onClose}>
 										Close
 									</Button>
-									<Button color="primary" type="submit">
-										Schedule
+									<Button color="primary" type="submit" isLoading={isLoading} isDisabled={isLoading}>
+										Submit
 									</Button>
 								</ModalFooter>
 							</form>
