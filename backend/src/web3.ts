@@ -5,9 +5,6 @@ import { etherlinkTestnet } from "viem/chains";
 import { createPublicClient, createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
-// const client = createThirdwebClient({ secretKey: THIRDWEB_SECRET_KEY });
-
-
 // async function getWallets() {
 // 	const wallets = await Engine.getServerWallets({ client });
 
