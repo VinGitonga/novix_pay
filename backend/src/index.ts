@@ -4,6 +4,7 @@ import { morganMiddleware } from "./middlewares/morgan.middleware";
 import DatabaseConnection from "./db/connect";
 import { logger } from "./logger/winston";
 import accountRouter from "./routes/account.route";
+import { APP_PORT } from "./constants";
 
 const app = express();
 
@@ -26,7 +27,18 @@ async function initializeDatabase() {
 async function main() {
 	await initializeDatabase();
 
-	app.use(accountRouter)
+	app.get("/", (req, res) => {
+		res.send("Hello Novix Pay");
+	});
+	app.use(accountRouter);
+
+	app.get(/(.*)/, (req: express.Request, res: express.Response) => {
+		res.status(500).json({ success: false, msg: "Internal Server Error" });
+	});
+
+	app.listen(APP_PORT, () => {
+		logger.info(`Server started at http://localhost:${APP_PORT}`);
+	});
 }
 
 main();
