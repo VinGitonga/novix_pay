@@ -4,7 +4,7 @@ import { AppSidebar } from "@/components/layouts/app-sidebar";
 
 import { Outlet } from "react-router";
 
-const HomeLayout = () => {
+const AppLayout = () => {
 	return (
 		<SidebarProvider
 			style={
@@ -21,4 +21,4 @@ const HomeLayout = () => {
 	);
 };
 
-export default HomeLayout;
+export default AppLayout;

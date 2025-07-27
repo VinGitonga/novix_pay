@@ -36,8 +36,8 @@ const data = {
 			icon: IconDashboard,
 		},
 		{
-			title: "Lifecycle",
-			url: "#",
+			title: "Subscriptions",
+			url: "/app/subscriptions",
 			icon: IconListDetails,
 		},
 		{
@@ -149,7 +149,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 						<SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
 							<a href="#">
 								<IconInnerShadowTop className="!size-5" />
-								<span className="text-base font-semibold">Acme Inc.</span>
+								<span className="text-base font-semibold">Novix Pay</span>
 							</a>
 						</SidebarMenuButton>
 					</SidebarMenuItem>
