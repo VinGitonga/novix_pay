@@ -3,6 +3,7 @@ import cors from "cors";
 import { morganMiddleware } from "./middlewares/morgan.middleware";
 import DatabaseConnection from "./db/connect";
 import { logger } from "./logger/winston";
+import accountRouter from "./routes/account.route";
 
 const app = express();
 
@@ -24,6 +25,8 @@ async function initializeDatabase() {
 
 async function main() {
 	await initializeDatabase();
+
+	app.use(accountRouter)
 }
 
 main();
