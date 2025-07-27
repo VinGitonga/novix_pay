@@ -6,6 +6,7 @@ import { CiGlobe } from "react-icons/ci";
 import ThirdwebConnectBtn from "@/components/ThirdwebConnectBtn";
 import { Link } from "react-router";
 import { Button, cn } from "@heroui/react";
+import { useAccountStore } from "@/hooks/store/useAccountStore";
 
 interface HomeLinkProps {
 	isActive?: boolean;
@@ -25,6 +26,7 @@ interface StepItemProps {
 }
 
 const LandingPage = () => {
+	const { account } = useAccountStore();
 	return (
 		<div className="min-h-screen overflow-y-auto w-screen text-white bg-[#130D26] pt-4">
 			<div className="mt-2 flex items-center justify-between px-20">
@@ -39,7 +41,7 @@ const LandingPage = () => {
 						<ThirdwebConnectBtn />
 					</div>
 				</div>
-			</div> 
+			</div>
 			<div className="mt-2 grid grid-cols-1 md:grid-cols-8 pl-20">
 				<div className="col-auto md:col-span-4 mt-12 space-y-10">
 					<div className="text-6xl font-bold">
@@ -51,7 +53,7 @@ const LandingPage = () => {
 					</div>
 					<div className="mt-5 flex items-center gap-3">
 						<ThirdwebConnectBtn />
-						<Button>Get Started</Button>
+						{!account && <Button>Get Started</Button>}
 					</div>
 				</div>
 				<div className="col-auto md:col-span-4">
