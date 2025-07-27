@@ -1,8 +1,9 @@
 import { createBrowserRouter } from "react-router";
 import RootLayout from "./layouts/RootLayout";
-import HomeScreen from "./pages/HomeScreen";
 import Dashboard from "./pages/Dashboard";
 import AppLayout from "./layouts/AppLayout";
+import Subscriptions from "./pages/Subscriptions";
+import LandingPage from "./pages/LandingPage";
 
 const router = createBrowserRouter([
 	{
@@ -11,7 +12,7 @@ const router = createBrowserRouter([
 		children: [
 			{
 				path: "",
-				element: <HomeScreen />,
+				element: <LandingPage />,
 			},
 			{
 				path: "app",
@@ -20,6 +21,10 @@ const router = createBrowserRouter([
 					{
 						path: "",
 						element: <Dashboard />,
+					},
+					{
+						path: "subscriptions",
+						element: <Subscriptions />,
 					},
 				],
 			},
