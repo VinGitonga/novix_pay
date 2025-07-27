@@ -30,7 +30,7 @@ async function main() {
 	app.get("/", (req, res) => {
 		res.send("Hello Novix Pay");
 	});
-	app.use(accountRouter);
+	app.use("/api/account", accountRouter);
 
 	app.get(/(.*)/, (req: express.Request, res: express.Response) => {
 		res.status(500).json({ success: false, msg: "Internal Server Error" });
