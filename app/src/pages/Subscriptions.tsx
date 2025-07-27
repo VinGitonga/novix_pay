@@ -110,7 +110,7 @@ const SchedulePaymentModal = ({ client, account }: { client: ThirdwebClient; acc
 				address: CONTRACT_ADDRESS,
 			});
 
-			const dueDateUnix = Math.floor(new Date(data.dueDate.toString()).valueOf() / 1000);
+			const dueDateUnix = Math.floor((Date.now() + 3 * 60 * 1000) / 1000);
 			const amtInDecimals = ethers.parseUnits(String(data.amount), 6); // USDT has 6 decimals
 
 			console.log("Submitting with:", { provider: data.provider, amount: amtInDecimals.toString(), dueDateUnix });
