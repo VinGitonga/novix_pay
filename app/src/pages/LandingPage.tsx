@@ -7,6 +7,7 @@ import ThirdwebConnectBtn from "@/components/ThirdwebConnectBtn";
 import { Link } from "react-router";
 import { Button, cn } from "@heroui/react";
 import { useAccountStore } from "@/hooks/store/useAccountStore";
+import GetStartedModal from "@/components/modals/GetStartedModal";
 
 interface HomeLinkProps {
 	isActive?: boolean;
@@ -53,7 +54,7 @@ const LandingPage = () => {
 					</div>
 					<div className="mt-5 flex items-center gap-3">
 						<ThirdwebConnectBtn />
-						{!account && <Button>Get Started</Button>}
+						{!account && <GetStartedModal />}
 					</div>
 				</div>
 				<div className="col-auto md:col-span-4">

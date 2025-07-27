@@ -67,7 +67,7 @@ const GetStartedModal = () => {
 	return (
 		<>
 			<Button onPress={onOpen}>Get Started</Button>
-			<Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+			<Modal isOpen={isOpen} onOpenChange={onOpenChange} >
 				<ModalContent className="font-nunito">
 					{(onClose) => (
 						<FormProvider {...formMethods}>
