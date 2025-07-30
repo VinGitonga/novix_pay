@@ -50,6 +50,8 @@ export function useFacilitator(facilitator?: FacilitatorConfig) {
       }),
     });
 
+    console.log("res900", res.status);
+
     if (res.status !== 200) {
       throw new Error(`Failed to verify payment: ${res.statusText}`);
     }
@@ -86,6 +88,9 @@ export function useFacilitator(facilitator?: FacilitatorConfig) {
         paymentRequirements: toJsonSafe(paymentRequirements),
       }),
     });
+
+    console.log("res", res.status);
+    console.log("res.status !== 200", res.status !== 200);
 
     if (res.status !== 200) {
       const text = res.statusText;

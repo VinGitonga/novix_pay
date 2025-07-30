@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Account, Address, Chain, getAddress, Hex, parseErc6492Signature, Transport } from "viem";
 import { getNetworkId } from "../../../shared";
 import { getVersion, getERC20Balance } from "../../../shared/evm";
@@ -125,6 +126,9 @@ export async function verify<
   if (
     BigInt(payload.payload.authorization.validBefore) < BigInt(Math.floor(Date.now() / 1000) + 6)
   ) {
+    console.log('BigInt(payload.payload.authorization.validBefore)', BigInt(payload.payload.authorization.validBefore));
+    // eslint-disable-next-line prettier/prettier
+    console.log("BigInt(Math.floor(Date.now() / 1000) + 6", BigInt(Math.floor(Date.now() / 1000) + 6))
     return {
       isValid: false,
       invalidReason: "invalid_exact_evm_payload_authorization_valid_before", //"Deadline on permit isn't far enough in the future",

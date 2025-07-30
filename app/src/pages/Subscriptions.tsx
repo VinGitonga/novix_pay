@@ -41,7 +41,7 @@ const payWithOptions = [
 	},
 	{
 		label: "USDC",
-		value: "0x4C2AA252BEe766D3399850569713b55178934849",
+		value: "0xe3A01f57C76B6bdf926618C910E546F794ff6dd4",
 	},
 ] satisfies IOption[];
 

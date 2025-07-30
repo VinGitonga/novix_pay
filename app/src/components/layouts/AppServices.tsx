@@ -1,4 +1,5 @@
 import useLoadAccountData from "@/hooks/useLoadAccountData";
+import useUpdatePaymentApiClient from "@/hooks/useUpdatePaymentApiClient";
 import type { FC, ReactNode } from "react";
 
 interface AppServicesProps {
@@ -7,6 +8,7 @@ interface AppServicesProps {
 
 const AppServices: FC<AppServicesProps> = ({ children }) => {
 	useLoadAccountData();
+	useUpdatePaymentApiClient()
 	return <>{children}</>;
 };
 

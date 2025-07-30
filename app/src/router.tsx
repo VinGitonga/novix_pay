@@ -4,6 +4,7 @@ import Dashboard from "./pages/Dashboard";
 import AppLayout from "./layouts/AppLayout";
 import Subscriptions from "./pages/Subscriptions";
 import LandingPage from "./pages/LandingPage";
+import PayWithUSDC from "./pages/PayWithUSDC";
 
 const router = createBrowserRouter([
 	{
@@ -25,6 +26,10 @@ const router = createBrowserRouter([
 					{
 						path: "subscriptions",
 						element: <Subscriptions />,
+					},
+					{
+						path: "pay-with-usdc",
+						element: <PayWithUSDC />,
 					},
 				],
 			},

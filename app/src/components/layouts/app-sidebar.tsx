@@ -41,8 +41,8 @@ const data = {
 			icon: IconListDetails,
 		},
 		{
-			title: "Analytics",
-			url: "#",
+			title: "Pay",
+			url: "/app/pay-with-usdc",
 			icon: IconChartBar,
 		},
 		{

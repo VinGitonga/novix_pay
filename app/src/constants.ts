@@ -1,3 +1,4 @@
 export const THIRDWEB_CLIENT_ID="7cc25e86b04a6cb1db769746d113bd48"
 export const CONTRACT_ADDRESS = "0x33763D18a61f846F90aE610d6B699cd309dAc31E"
 export const API_URL = "http://localhost:8745/api"
+export const API_BASE_URL = "http://localhost:8745"
