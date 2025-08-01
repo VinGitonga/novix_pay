@@ -5,6 +5,7 @@ import AppLayout from "./layouts/AppLayout";
 import Subscriptions from "./pages/Subscriptions";
 import LandingPage from "./pages/LandingPage";
 import PayWithUSDC from "./pages/PayWithUSDC";
+import PaymentLinkCheckout from "./pages/PaymentLinkCheckout";
 
 const router = createBrowserRouter([
 	{
@@ -32,6 +33,10 @@ const router = createBrowserRouter([
 						element: <PayWithUSDC />,
 					},
 				],
+			},
+			{
+				path: "pay/:paymentLinkId",
+				element: <PaymentLinkCheckout />,
 			},
 		],
 	},
