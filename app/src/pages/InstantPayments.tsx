@@ -1,11 +1,38 @@
 import ThirdwebConnectBtn from "@/components/ThirdwebConnectBtn";
+import { tryCatch } from "@/helpers/try-catch";
 import { formatAmount } from "@/lib/utils";
 import { Button, Card, CardBody, CardFooter, CardHeader, Chip, Divider, Input } from "@heroui/react";
-import { ArrowLeftIcon, CheckCircleIcon, CopyIcon, CreditCardIcon, DollarSignIcon, Loader2Icon, WalletIcon, XCircleIcon, ExternalLinkIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ArrowLeftIcon, CheckCircleIcon, CopyIcon, CreditCardIcon, DollarSignIcon, WalletIcon, XCircleIcon, ExternalLinkIcon } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import { useActiveAccount } from "thirdweb/react";
+import { createPublicClient, defineChain, formatUnits, http, publicActions } from "viem";
+import { getUSDCBalance } from "x402/shared/evm";
+
+const etherlinkTestnetChain = defineChain({
+	id: 128123,
+	name: "Etherlink Testnet",
+	nativeCurrency: {
+		decimals: 18,
+		name: "Tez",
+		symbol: "XTZ",
+	},
+	rpcUrls: {
+		default: {
+			http: ["https://rpc.ankr.com/etherlink_testnet/a82544020f1eaac977cf88367f722bd63ecb54ec7d3154933897a56f1038f8ad"],
+		},
+	},
+	blockExplorers: {
+		default: {
+			name: "Etherlink Testnet",
+			url: "https://testnet.explorer.etherlink.com",
+		},
+	},
+	testnet: true,
+});
+
+const publicClient = createPublicClient({ chain: etherlinkTestnetChain, transport: http() }).extend(publicActions);
 
 const InstantPayments = () => {
 	const [searchParams] = useSearchParams();
@@ -27,6 +54,18 @@ const InstantPayments = () => {
 		toast.success("Payment link copied to clipboard");
 	};
 
+	const checkUSDCBalance = useCallback(async () => {
+		if (!activeAccount) return;
+
+		const { data: balance, error } = await tryCatch(getUSDCBalance(publicClient as any, activeAccount.address as `0x${string}`));
+		if (error) {
+		}
+		if (balance) {
+			const formattedBalance = formatUnits(balance, 6);
+			setUsdcBalance(formattedBalance);
+		}
+	}, [activeAccount, publicClient]);
+
 	const handlePayment = async () => {
 		if (!targetWallet || !amount || !activeAccount) {
 			toast.error("Please connect your wallet and ensure all parameters are valid");
@@ -34,7 +73,7 @@ const InstantPayments = () => {
 		}
 
 		setIsProcessing(true);
-		
+
 		// Simulate payment processing
 		setTimeout(() => {
 			setIsProcessing(false);
@@ -50,11 +89,9 @@ const InstantPayments = () => {
 		}
 	}, [targetWallet, amount]);
 
-	// Simulate USDC balance check
 	useEffect(() => {
 		if (activeAccount) {
-			// Simulate balance check
-			setUsdcBalance("150.50");
+			checkUSDCBalance();
 		}
 	}, [activeAccount]);
 
@@ -91,7 +128,9 @@ const InstantPayments = () => {
 							<p className="text-muted-foreground mb-4">Your instant payment has been processed successfully.</p>
 							<div className="space-y-2 mb-6">
 								<p className="text-sm text-muted-foreground">Amount: {formatAmount(amount)}</p>
-								<p className="text-sm text-muted-foreground">To: {targetWallet.slice(0, 6)}...{targetWallet.slice(-4)}</p>
+								<p className="text-sm text-muted-foreground">
+									To: {targetWallet.slice(0, 6)}...{targetWallet.slice(-4)}
+								</p>
 							</div>
 							<Button onPress={() => navigate("/")}>
 								<ArrowLeftIcon className="h-4 w-4 mr-2" />
@@ -141,25 +180,13 @@ const InstantPayments = () => {
 								<div className="space-y-4">
 									<div>
 										<label className="text-sm font-medium text-muted-foreground mb-2 block">Description</label>
-										<Input
-											value={description}
-											isReadOnly
-											variant="bordered"
-											placeholder="Payment description"
-											className="w-full"
-										/>
+										<Input value={description} isReadOnly variant="bordered" placeholder="Payment description" className="w-full" />
 									</div>
-									
+
 									<div>
 										<label className="text-sm font-medium text-muted-foreground mb-2 block">Target Wallet Address</label>
 										<div className="flex items-center space-x-2">
-											<Input
-												value={targetWallet}
-												isReadOnly
-												variant="bordered"
-												placeholder="0x..."
-												className="w-full font-mono text-sm"
-											/>
+											<Input value={targetWallet} isReadOnly variant="bordered" placeholder="0x..." className="w-full font-mono text-sm" />
 											<Button
 												isIconOnly
 												size="sm"
@@ -167,16 +194,10 @@ const InstantPayments = () => {
 												onPress={() => {
 													navigator.clipboard.writeText(targetWallet);
 													toast.success("Wallet address copied");
-												}}
-											>
+												}}>
 												<CopyIcon className="h-4 w-4" />
 											</Button>
-											<Button
-												isIconOnly
-												size="sm"
-												variant="bordered"
-												onPress={() => window.open(`https://testnet.explorer.etherlink.com/address/${targetWallet}`, '_blank')}
-											>
+											<Button isIconOnly size="sm" variant="bordered" onPress={() => window.open(`https://testnet.explorer.etherlink.com/address/${targetWallet}`, "_blank")}>
 												<ExternalLinkIcon className="h-4 w-4" />
 											</Button>
 										</div>
@@ -184,14 +205,7 @@ const InstantPayments = () => {
 
 									<div>
 										<label className="text-sm font-medium text-muted-foreground mb-2 block">Amount (USDC)</label>
-										<Input
-											value={amount}
-											isReadOnly
-											variant="bordered"
-											placeholder="0.00"
-											startContent={<DollarSignIcon className="h-4 w-4 text-muted-foreground" />}
-											className="w-full"
-										/>
+										<Input value={amount} isReadOnly variant="bordered" placeholder="0.00" startContent={<DollarSignIcon className="h-4 w-4 text-muted-foreground" />} className="w-full" />
 									</div>
 								</div>
 
@@ -278,14 +292,7 @@ const InstantPayments = () => {
 								</div>
 
 								<div className="space-y-3">
-									<Button 
-										size="lg" 
-										color="secondary" 
-										onPress={handlePayment} 
-										isLoading={isProcessing || !isConnected || hasInsufficientBalance} 
-										isDisabled={isProcessing}
-										className="w-full"
-									>
+									<Button size="lg" color="secondary" onPress={handlePayment} isLoading={isProcessing || !isConnected || hasInsufficientBalance} isDisabled={isProcessing} className="w-full">
 										{isProcessing ? "Processing..." : `Send ${formatAmount(amount)}`}
 									</Button>
 
@@ -298,9 +305,7 @@ const InstantPayments = () => {
 								</div>
 							</CardBody>
 							<CardFooter>
-								<div className="text-xs text-muted-foreground text-center w-full">
-									Powered by Novix Pay with x402 • Secure USDC payments
-								</div>
+								<div className="text-xs text-muted-foreground text-center w-full">Powered by Novix Pay with x402 • Secure USDC payments</div>
 							</CardFooter>
 						</Card>
 					</div>
