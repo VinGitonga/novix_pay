@@ -102,9 +102,11 @@ async function initAgent(user_id: string, username: string) {
 	Current Date is ${currentDate} at approximately ${currentTime}.
 
 	You can use the following tools too to assist users: ${allTools.map((tool) => `- **${tool.name}**: ${tool.description}`).join("\n")}
+
+	Generate output in markdown format.
 	`;
 
-	const modelWithTools = llm.bindTools(allTools.map((t) => convertToOpenAITool(t)));
+	const modelWithTools = llm.bindTools(allTools.map((t) => convertToOpenAITool(t)))
 
 	// const agentModel = await createAgent({ llm, tools: allTools, system_message: "Be brief and concise" });
 	// const model = prompt.pipe(modelWithTools);
@@ -147,7 +149,7 @@ async function handleAndStreamMessage(ctx: Context) {
 	let state = await agent.getState(config);
 
 	// Send initial placeholder message
-	let sentMessage = await ctx.reply("...", { parse_mode: "Markdown" });
+	let sentMessage = await ctx.reply("typing", { parse_mode: "MarkdownV2" });
 	let response = "";
 
 	// Choose stream input based on state
@@ -174,7 +176,7 @@ async function handleAndStreamMessage(ctx: Context) {
 				if (content) {
 					response += content + "\n";
 					console.log("response", response);
-					const escapedResponse = response.replace(/[_*[\]()~`>#+=|{}.!-]/g, "\\$&");
+					const escapedResponse = response.replace(/([\\_*`|!.[\](){}>+#=~-])/gm, '\\$1');
 					await ctx.api.editMessageText(ctx.chat.id, sentMessage.message_id, escapedResponse, { parse_mode: "MarkdownV2" });
 				}
 			}
@@ -186,8 +188,8 @@ async function handleAndStreamMessage(ctx: Context) {
 	if (state.next.includes("askHuman")) {
 		const lastMessage = state.values.messages[state.values.messages.length - 1] as BaseMessage;
 		response = `${lastMessage.content}\nPlease respond with 'approve', 'reject', or 'adjust' (with JSON, e.g., {\"amount\": 500}).`;
-		const escapedResponse = response.replace(/[_*[\]()~`>#+=|{}.!-]/g, "\\$&");
-		await ctx.api.editMessageText(ctx.chat.id, sentMessage.message_id, escapedResponse);
+		const escapedResponse = response.replace(/([\\_*`|!.[\](){}>+#=~-])/gm, '\\$1');
+		await ctx.api.editMessageText(ctx.chat.id, sentMessage.message_id, escapedResponse, {parse_mode: "MarkdownV2"});
 	}
 }
 
@@ -202,7 +204,7 @@ bot.command("start", async (ctx) => {
 
 	const welcomeMsg = `Welcome to NovixPay, an AI Agent to assist you to manage your recurring payments.`;
 
-	await sendReply(ctx, welcomeMsg, { parse_mode: "Markdown" });
+	await sendReply(ctx, welcomeMsg.replace(/([\\_*`|!.[\](){}>+#=~-])/gm, '\\$1'), { parse_mode: "MarkdownV2" });
 });
 
 bot.on("message:text", async (ctx) => {
