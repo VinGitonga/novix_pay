@@ -1,6 +1,9 @@
 import ThirdwebConnectBtn from "@/components/ThirdwebConnectBtn";
+import { API_BASE_URL } from "@/constants";
 import { tryCatch } from "@/helpers/try-catch";
+import usePaymentsUtils from "@/hooks/usePaymentsUtils";
 import { formatAmount } from "@/lib/utils";
+import { IApiEndpoint } from "@/types/Api";
 import { Button, Card, CardBody, CardFooter, CardHeader, Chip, Divider, Input } from "@heroui/react";
 import { ArrowLeftIcon, CheckCircleIcon, CopyIcon, CreditCardIcon, DollarSignIcon, WalletIcon, XCircleIcon, ExternalLinkIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -8,7 +11,12 @@ import { useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import { useActiveAccount } from "thirdweb/react";
 import { createPublicClient, defineChain, formatUnits, http, publicActions } from "viem";
+import { useWalletClient } from "wagmi";
+import { selectPaymentRequirements } from "x402";
+import { ensureValidAmount } from "x402/paywall/src/utils";
+import { exact } from "x402/schemes";
 import { getUSDCBalance } from "x402/shared/evm";
+import type { PaymentRequirements } from "x402/types";
 
 const etherlinkTestnetChain = defineChain({
 	id: 128123,
@@ -38,6 +46,9 @@ const InstantPayments = () => {
 	const [searchParams] = useSearchParams();
 	const activeAccount = useActiveAccount();
 	const navigate = useNavigate();
+	const { data: wagmiWalletClient } = useWalletClient();
+
+	const { getInstantPaymentRequirements } = usePaymentsUtils();
 
 	// Get search params
 	const targetWallet = searchParams.get("account") || "";
@@ -48,6 +59,7 @@ const InstantPayments = () => {
 	const [isProcessing, setIsProcessing] = useState<boolean>(false);
 	const [paymentSuccess, setPaymentSuccess] = useState<boolean>(false);
 	const [isValidParams, setIsValidParams] = useState<boolean>(true);
+	const [paymentRequirements, setPaymentRequirements] = useState<PaymentRequirements[]>([]);
 
 	const copyPaymentLink = () => {
 		navigator.clipboard.writeText(window.location.href);
@@ -74,12 +86,27 @@ const InstantPayments = () => {
 
 		setIsProcessing(true);
 
-		// Simulate payment processing
-		setTimeout(() => {
-			setIsProcessing(false);
-			setPaymentSuccess(true);
-			toast.success("Payment successful");
-		}, 2000);
+		const walletClient = wagmiWalletClient?.extend(publicActions);
+		const payReqs = selectPaymentRequirements(paymentRequirements.flat(), "etherlink-testnet", "exact");
+		const validPaymentRequirements = ensureValidAmount(payReqs);
+		const paymentPayload = await exact.evm.createPayment(walletClient as any, 1, validPaymentRequirements);
+
+		const payment: string = exact.evm.encodePayment(paymentPayload);
+
+		const response = await fetch(`${API_BASE_URL}/api/${IApiEndpoint.MAKE_INSTANT_PAYMENT}?account=${targetWallet}&amt=${amount}`, {
+			headers: { "X-PAYMENT": payment, "Access-Control-Expose-Headers": "X-PAYMENT-RESPONSE" },
+			method: "GET",
+		});
+
+		setIsProcessing(false);
+
+		if (!response.ok) {
+			toast.error("Payment failed to settle");
+			return;
+		}
+
+		setPaymentSuccess(true);
+		toast.success("Payment successful");
 	};
 
 	// Validate search params on component mount
@@ -94,6 +121,23 @@ const InstantPayments = () => {
 			checkUSDCBalance();
 		}
 	}, [activeAccount]);
+
+	useEffect(() => {
+		async function getPaymentDetails() {
+			const { data: resp, error } = await tryCatch(getInstantPaymentRequirements(targetWallet, amount));
+
+			if (error) {
+			}
+
+			if (resp?.status === "success") {
+				setPaymentRequirements(resp?.data?.paymentRequirements!);
+			}
+		}
+
+		if (targetWallet && amount) {
+			getPaymentDetails();
+		}
+	}, [amount, targetWallet]);
 
 	const hasInsufficientBalance = parseFloat(usdcBalance) < parseFloat(amount);
 	const isConnected = !!activeAccount;

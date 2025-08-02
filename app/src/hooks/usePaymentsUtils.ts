@@ -16,7 +16,16 @@ const usePaymentsUtils = () => {
 		[get]
 	);
 
-	return { getPaymentRequirements };
+	const getInstantPaymentRequirements = useCallback(
+		async (account: string, amt: string) => {
+			const resp = await get<IApiResponse<{ paymentRequirements: PaymentRequirements[] }>>({ endpoint: IApiEndpoint.GET_INSTANT_PAYMENT_REQUIREMENTS, queryParams: { account, amt } });
+
+			return resp.data;
+		},
+		[get]
+	);
+
+	return { getPaymentRequirements, getInstantPaymentRequirements };
 };
 
 export default usePaymentsUtils;

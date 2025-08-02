@@ -20,7 +20,9 @@ export const enum IApiEndpoint {
 	CREATE_PLAN = "plans/create",
 	GET_PLANS_BY_ACCOUNT = "plans/get/by-account",
 	GET_PAYMENT_REQUIREMENTS = "payments/get/payment-reqs",
-	MAKE_PAYMENT_FOR_PLAN = "payments/pay-plan"
+	MAKE_PAYMENT_FOR_PLAN = "payments/pay-plan",
+	GET_INSTANT_PAYMENT_REQUIREMENTS = "payments/get/instant/payment-reqs",
+	MAKE_INSTANT_PAYMENT = "payments/pay-instant"
 }
 
 export interface IMethodParams {

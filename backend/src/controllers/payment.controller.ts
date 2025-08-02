@@ -239,12 +239,14 @@ async function makePlanPayments(req: Request, res: ExpressResponse) {
 async function getInstantPaymentsRequirements(req: Request, res: ExpressResponse) {
 	const { account, amt } = req.query;
 
-	if (!account || amt) {
+	if (!account || !amt) {
 		res.status(400).json({ status: "error", msg: `Amount and target address is required` });
+		return
 	}
 
 	if (parseFloat(amt as string) <= 0) {
 		res.status(400).json({ status: "error", msg: `Amount must be greater than 0` });
+		return
 	}
 
 	const resource = `${API_BASE_URL}/payments/pay-instant?account=${account}&amt=${amt}` as Resource;
