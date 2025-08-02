@@ -38,3 +38,11 @@ export const truncateLink = (link: string, maxLength: number = 50): string => {
 
 	return `${link.slice(0, start)}...${link.slice(end)}`;
 };
+
+export const formatAmount = (amount: string) => {
+	return new Intl.NumberFormat("en-US", {
+		style: "currency",
+		currency: "USD",
+		minimumFractionDigits: 2,
+	}).format(parseFloat(amount));
+};

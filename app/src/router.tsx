@@ -7,6 +7,7 @@ import LandingPage from "./pages/LandingPage";
 import PayWithUSDC from "./pages/PayWithUSDC";
 import PaymentLinkCheckout from "./pages/PaymentLinkCheckout";
 import PlansPage from "./pages/PlansPage";
+import PaymentCheckout from "./pages/PaymentCheckout";
 
 const router = createBrowserRouter([
 	{
@@ -42,6 +43,10 @@ const router = createBrowserRouter([
 			{
 				path: "pay/:paymentLinkId",
 				element: <PaymentLinkCheckout />,
+			},
+			{
+				path: "make-payments/:businessId/:planId",
+				element: <PaymentCheckout />,
 			},
 		],
 	},

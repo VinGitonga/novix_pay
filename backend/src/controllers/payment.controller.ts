@@ -78,11 +78,11 @@ async function getPlanPaymentRequirements(req: Request, res: ExpressResponse) {
 		res.status(400).json({ status: "error", msg: "Plan not found" });
 	}
 
-	const resource = `${API_BASE_URL}/payments/pay-plan/${planDetails.uniqueId}` as Resource;
+	const resource = `${API_BASE_URL}/payments/pay-plan?plan=${planDetails.uniqueId}` as Resource;
 
 	const paymentReqs = [createExactPaymentRequirements(planDetails.price, "etherlink-testnet", resource, account.wallet_address, `Pay for Plan : ${planDetails.title}`)];
 
-	res.status(200).json({ status: "success", data: paymentReqs, msg: "Plan payment requirements generated" });
+	res.status(200).json({ status: "success", data: { paymentRequirements: paymentReqs, planDetails }, msg: "Plan payment requirements generated" });
 }
 
 /**
