@@ -236,4 +236,72 @@ async function makePlanPayments(req: Request, res: ExpressResponse) {
 	}
 }
 
-export default { getPaymentsByPayTo, getPlanPaymentRequirements, makePlanPayments };
+async function getInstantPaymentsRequirements(req: Request, res: ExpressResponse) {
+	const { account, amt } = req.query;
+
+	if (!account || amt) {
+		res.status(400).json({ status: "error", msg: `Amount and target address is required` });
+	}
+
+	if (parseFloat(amt as string) <= 0) {
+		res.status(400).json({ status: "error", msg: `Amount must be greater than 0` });
+	}
+
+	const resource = `${API_BASE_URL}/payments/pay-instant?account=${account}&amt=${amt}` as Resource;
+
+	const paymentReqs = [createExactPaymentRequirements(parseFloat(amt as string), "etherlink-testnet", resource, account as string, `Instant payment`)];
+
+	res.status(200).json({ status: "success", data: { paymentRequirements: paymentReqs } });
+}
+
+async function payInstantPayment(req: Request, res: ExpressResponse) {
+	const { account, amt } = req.query;
+
+	const amount = parseFloat(amt as string);
+
+	const resource = `${req.protocol}://${req.headers.host}${req.originalUrl}` as Resource;
+
+	const paymentRequirements = [createExactPaymentRequirements(amount, "etherlink-testnet", resource, account as string, `Instant payment`)];
+
+	const isValid = await verifyPayment(req, res, paymentRequirements);
+
+	if (!isValid) return;
+
+	try {
+		const settleResponse = await settle(exact.evm.decodePayment(req.header("X-PAYMENT")!), paymentRequirements[0]);
+
+		const responseHeader = settleResponseHeader(settleResponse);
+
+		// save the payment to database
+		const dataToSave = {
+			amount: amount,
+			payer: settleResponse.payer,
+			payTo: account as string,
+			transaction: settleResponse.transaction,
+		};
+
+		const { data: savedPayment, error } = await tryCatch(paymentService.createPaymentItem(dataToSave));
+
+		res.setHeader("X-PAYMENT-RESPONSE", responseHeader);
+
+		res.status(200).json({
+			status: "success",
+			data: {
+				savedPayment,
+			},
+		});
+	} catch (err) {
+		console.log(err);
+		res.status(402).json({
+			status: "error",
+			msg: "Unable to settle the payment at the moment, please try again.",
+			errors: {
+				x402Version,
+				error: err,
+				accepts: paymentRequirements,
+			},
+		});
+	}
+}
+
+export default { getPaymentsByPayTo, getPlanPaymentRequirements, makePlanPayments, getInstantPaymentsRequirements, payInstantPayment };
