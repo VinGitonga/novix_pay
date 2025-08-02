@@ -46,8 +46,8 @@ const data = {
 			icon: IconChartBar,
 		},
 		{
-			title: "Projects",
-			url: "#",
+			title: "Plans",
+			url: "/app/plans",
 			icon: IconFolder,
 		},
 		{
