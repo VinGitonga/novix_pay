@@ -2,12 +2,24 @@ import AppInput from "@/components/forms/AppInput";
 import AppSelect from "@/components/forms/AppSelect";
 import AppTextArea from "@/components/forms/AppTextArea";
 import { SiteHeader } from "@/components/layouts/site-header";
+import { tryCatch } from "@/helpers/try-catch";
+import { useAccountStore } from "@/hooks/store/useAccountStore";
+import usePlanUtils from "@/hooks/usePlansUtils";
 import type { IOption } from "@/types/Option";
-import { Button, Card, CardBody, CardHeader, Chip, cn, Divider, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from "@heroui/react";
+import { Button, Card, CardBody, CardHeader, Chip, cn, Code, Divider, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Spinner, useDisclosure } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckIcon, TrashIcon } from "lucide-react";
+import { useMemo, useState } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import z from "zod";
+import useSWR from "swr";
+import type { IPlan } from "@/types/Plan";
+import { IApiEndpoint } from "@/types/Api";
+import { swrFetcher } from "@/lib/api-client";
+import AppRadioGroup from "@/components/forms/AppRadioGroup";
+import { generatePaymentLink, truncateLink } from "@/lib/utils";
+import AppIconCopyBtn from "@/components/btns/AppIconCopyBtn";
 
 interface PlanCardProps {
 	title: string;
@@ -16,9 +28,8 @@ interface PlanCardProps {
 	text: string;
 	subText?: string;
 	cardBgColor?: string;
-	isCurrentPlan?: boolean;
-	onBtnClick?: VoidFunction;
 	features: string[];
+	planData: IPlan;
 }
 
 const planFeatsSchema = z.object({
@@ -42,38 +53,43 @@ const paymentOptions = [
 ] satisfies IOption[];
 
 const PlansPage = () => {
+	const { account } = useAccountStore();
+	const { data: plans, isLoading, mutate } = useSWR<IPlan[]>(!account ? undefined : [`${IApiEndpoint.GET_PLANS_BY_ACCOUNT}/${account?._id}`], swrFetcher);
 	return (
 		<>
 			<SiteHeader title="Plans" />
-			<div className="py-3 px-3 space-y-1">
+			<div className="pt-3 px-3 space-y-1 pb-6">
 				<div className="flex items-center justify-between">
 					<h1 className="font-semibold text-xl">Manage your payment plans here</h1>
-					<NewPlanModal />
+					<NewPlanModal refetch={mutate} />
 				</div>
 				<p className="text-gray-600 text-sm">Lorem ipsum dolor, sit amet consectetur adipisicing elit. Molestias, ea?</p>
 			</div>
-			<div className="mt-6 px-3">
-				<PlanCard
-					title="Strategic Climate Planner"
-					chipText="Best-Value"
-					text="For growing teams ready to integrate climate into business operations."
-					subText="Ideal for: Institutions and corporates seek deeper climate alignment."
-					price="$20/month"
-					features={[
-						"Everything in compliance starter",
-						"Scope 1, 2 & Select Scope 3 Modules (Employee Commute, Business Travel)",
-						"Multi-user / Multi-location Support.",
-						"Emissions Reduction Tracking Dashboard- Net zero",
-						"Self-paced climate strategy modules",
-						"Custom Action Plans Based on Sector & Region",
-					]}
-				/>
+			<div className="mt-6 px-3 space-y-4 mb-4">
+				{isLoading && (
+					<div className="flex items-center justify-center">
+						<Spinner color="secondary" size="lg" />
+					</div>
+				)}
+				{plans &&
+					plans.map((plan) => (
+						<PlanCard
+							key={plan._id}
+							title={plan.title}
+							chipText={plan?.tag}
+							text={plan?.description}
+							subText={plan?.text}
+							price={`$${plan?.price}/${plan.paymentPlan}`}
+							features={plan?.features}
+							planData={plan}
+						/>
+					))}
 			</div>
 		</>
 	);
 };
 
-const PlanCard = ({ title, chipText, price, text, subText, cardBgColor = "bg-[#EED2AD]", isCurrentPlan = false, onBtnClick, features }: PlanCardProps) => {
+const PlanCard = ({ title, chipText, price, text, subText, cardBgColor = "bg-[#EED2AD]", features, planData }: PlanCardProps) => {
 	return (
 		<Card className={cn("px-5 py-4", cardBgColor)}>
 			<CardHeader className="gap-5">
@@ -90,8 +106,8 @@ const PlanCard = ({ title, chipText, price, text, subText, cardBgColor = "bg-[#E
 						<div className="space-y-5">
 							<h1 className="text-xl text-saastain-green font-bold">{price}</h1>
 							<p className="text-gray-700 text-sm w-4/5">{text}</p>
-							{subText && <p className="text-sm font-extralight italic">Ideal for: SMEs complying with a government/financier mandate.</p>}
-							<Button color="secondary">Create Payment Link</Button>
+							{subText && <p className="text-sm font-extralight italic">{subText}</p>}
+							<CreatePaymentLinkModal plan={planData} />
 						</div>
 					</div>
 					<div className="col-auto md:col-span-5">
@@ -112,8 +128,10 @@ const PlanCard = ({ title, chipText, price, text, subText, cardBgColor = "bg-[#E
 	);
 };
 
-const NewPlanModal = () => {
+const NewPlanModal = ({ refetch }: { refetch?: VoidFunction }) => {
+	const { account } = useAccountStore();
 	const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
+	const [loading, setLoading] = useState<boolean>(false);
 
 	const formMethods = useForm<z.input<typeof planFormSchema>>({
 		resolver: zodResolver(planFormSchema),
@@ -124,7 +142,7 @@ const NewPlanModal = () => {
 			features: [{ text: "" }],
 			tag: "",
 			price: 1,
-			paymentPlan: "month"
+			paymentPlan: "month",
 		},
 	});
 
@@ -137,9 +155,36 @@ const NewPlanModal = () => {
 
 	const { fields, append, remove } = useFieldArray({ control, name: "features" });
 
+	const { createPlan } = usePlanUtils();
+
 	const onSubmit = handleSubmit(async (data) => {
-		console.log('Data', data)
+		const info = {
+			...data,
+			features: data.features.map((feat) => feat.text),
+			account: account?._id!,
+			price: Number(data.price),
+		};
+
+		const { data: resp, error } = await tryCatch(createPlan(info));
+
+		if (error) {
+			toast.error("Unable to create the plan");
+			setLoading(false);
+			return;
+		}
+
+		if (resp?.status === "success") {
+			toast.error("Plan created successfully");
+			reset();
+			setLoading(false);
+			refetch?.();
+			onClose();
+		} else {
+			toast.error("Unable to create the plan");
+			setLoading(false);
+		}
 	});
+
 	return (
 		<>
 			<Button color="secondary" onPress={onOpen}>
@@ -164,7 +209,14 @@ const NewPlanModal = () => {
 									<p>Features</p>
 									{fields.map((feat, idx) => (
 										<div key={feat.id} className="flex items-baseline gap-2">
-											<AppInput label={"Feature 1"} placeholder="feat 1" labelPlacement="inside" name={`features.${idx}.text`} control={control} error={formErrors?.features?.[idx]?.text} />
+											<AppInput
+												label={`Feature ${idx + 1}`}
+												placeholder={"Type something"}
+												labelPlacement="inside"
+												name={`features.${idx}.text`}
+												control={control}
+												error={formErrors?.features?.[idx]?.text}
+											/>
 											{fields.length > 1 && (
 												<Button type="button" size="sm" isIconOnly color="danger" onPress={() => remove(idx)}>
 													<TrashIcon className="w-5 h-5" />
@@ -182,12 +234,61 @@ const NewPlanModal = () => {
 									<Button type="button" onPress={onClose}>
 										Close
 									</Button>
-									<Button color="secondary" type="submit">
+									<Button color="secondary" type="submit" isLoading={loading} isDisabled={loading}>
 										Save
 									</Button>
 								</ModalFooter>
 							</form>
 						</FormProvider>
+					)}
+				</ModalContent>
+			</Modal>
+		</>
+	);
+};
+
+const CreatePaymentLinkModal = ({ plan }: { plan: IPlan }) => {
+	const { isOpen, onOpen, onOpenChange } = useDisclosure();
+	const { account } = useAccountStore();
+	const [paymentType, setPaymentType] = useState<string>("one-time");
+
+	const options = [
+		{ label: "One time payment", value: "one-time" },
+		{ label: "Recurring Payment", value: "recurring" },
+	] satisfies IOption[];
+
+	const paymentLink = useMemo(() => {
+		if (paymentType) {
+			return generatePaymentLink(account?.slug!, plan?.uniqueId, paymentType as any);
+		}
+		return "";
+	}, [paymentType]);
+
+	return (
+		<>
+			<Button color="secondary" onPress={onOpen}>
+				Create Payment Link
+			</Button>
+			<Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+				<ModalContent className="font-nunito">
+					{(onClose) => (
+						<>
+							<ModalHeader>Generate a payment link for {plan.title}</ModalHeader>
+							<ModalBody>
+								<AppRadioGroup label="Choose type of payment" options={options} value={paymentType} setValue={setPaymentType} />
+								<div className="w-full space-y-2">
+									{paymentLink && (
+										<Code className="w-full text-xs break-all" size="sm">
+											{truncateLink(paymentLink, 53)}
+										</Code>
+									)}
+									{paymentLink && <AppIconCopyBtn link={paymentLink} />}
+								</div>
+							</ModalBody>
+							<ModalFooter>
+								<Button onPress={onClose}>Close</Button>
+							</ModalFooter>
+						</>
 					)}
 				</ModalContent>
 			</Modal>

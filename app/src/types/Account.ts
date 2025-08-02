@@ -6,4 +6,5 @@ export interface IAccount {
 	wallet_address: string;
 	createdAt: string;
 	updatedAt: string;
+	slug: string;
 }

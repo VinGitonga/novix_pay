@@ -16,7 +16,9 @@ export type IApiResponse<T = any> = IApiSuccessResponse<T> | IApiErrorResponse;
 
 export const enum IApiEndpoint {
 	CREATE_ACCOUNT = "accounts/create",
-	GET_ACCOUNT_BY_WALLET ="accounts/get/by-wallet"
+	GET_ACCOUNT_BY_WALLET = "accounts/get/by-wallet",
+	CREATE_PLAN = "plans/create",
+	GET_PLANS_BY_ACCOUNT = "plans/get/by-account",
 }
 
 export interface IMethodParams {

@@ -10,6 +10,7 @@ export interface IPlan {
 	paymentPlan: string;
 	features: string[];
 	account: string | IAccount;
+	uniqueId: string;
 	createdAt: string;
 	updatedAt: string;
 }
@@ -26,6 +27,7 @@ const planSchema = new Schema<IPlan, PlanModel>(
 		paymentPlan: { type: String, required: true, enum: ["week", "month", "annual"] },
 		features: { type: [String], default: [] },
 		account: { type: mongoose.Types.ObjectId, ref: "Account" },
+		uniqueId: { type: String, required: true },
 	},
 	{ timestamps: true }
 );

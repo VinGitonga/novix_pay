@@ -3,7 +3,7 @@ import { useApi } from "./useApi";
 import type { IAccount } from "@/types/Account";
 import { IApiEndpoint, type IApiResponse } from "@/types/Api";
 
-type TCreateAccount = Omit<IAccount, "createdAt" | "updatedAt" | "_id">;
+type TCreateAccount = Omit<IAccount, "createdAt" | "updatedAt" | "_id" | "slug">;
 
 const useAccountUtils = () => {
 	const { post } = useApi();

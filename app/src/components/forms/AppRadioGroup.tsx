@@ -43,7 +43,7 @@ const AppRadioGroup = ({ name, label, setValue = NOOP, value, isRequired, error,
 					classNames={{
 						label: "text-sm font-medium text-gray-800",
 					}}
-					color="primary"
+					color="secondary"
 					onChange={onControlledChange}>
 					{options.map((opt) => {
 						const item = getOptionItem(opt);
@@ -74,7 +74,7 @@ const AppRadioGroup = ({ name, label, setValue = NOOP, value, isRequired, error,
 			classNames={{
 				label: "text-sm font-medium text-gray-800",
 			}}
-			color="primary"
+			color="secondary"
 			onChange={onChange}>
 			{options.map((opt) => {
 				const item = getOptionItem(opt);
