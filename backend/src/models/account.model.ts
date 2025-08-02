@@ -1,22 +1,24 @@
 import { model, Model, Schema } from "mongoose";
 
 export interface IAccount {
-	username?: string;
+	username: string;
 	isProvider: boolean;
 	tg_username?: string;
 	wallet_address: string;
 	createdAt: string;
 	updatedAt: string;
+	slug: string;
 }
 
 type AccountModel = Model<IAccount>;
 
 const accountSchema = new Schema<IAccount, AccountModel>(
 	{
-		username: { type: String },
+		username: { type: String, required: true },
 		isProvider: { type: Boolean, default: false },
 		tg_username: { type: String },
 		wallet_address: { type: String, required: true },
+		slug: { type: String, required: true },
 	},
 	{ timestamps: true }
 );

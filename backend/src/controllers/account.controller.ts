@@ -1,10 +1,10 @@
 import { Request } from "express";
 import { tryCatch } from "src/helpers/try-catch";
-import { createAccount, getAccountByWallet } from "src/services/account.service";
+import accountService from "src/services/account.service";
 import { ExpressResponse } from "src/types/Api";
 
 export const createAccountController = async (req: Request, res: ExpressResponse) => {
-	const { data, error } = await tryCatch(createAccount(req.body));
+	const { data, error } = await tryCatch(accountService.createAccount(req.body));
 
 	if (error) {
 		res.status(400).json({ status: "error", msg: error.message ?? "An error occured" });
@@ -14,7 +14,7 @@ export const createAccountController = async (req: Request, res: ExpressResponse
 };
 
 export const getAccountByWalletController = async (req: Request, res: ExpressResponse) => {
-	const { data, error } = await tryCatch(getAccountByWallet(req.params.wallet_address as string));
+	const { data, error } = await tryCatch(accountService.getAccountByWallet(req.params.wallet_address as string));
 
 	if (error) {
 		res.status(400).json({ status: "error", msg: "Unable to fetch the account" });
