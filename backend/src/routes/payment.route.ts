@@ -1,5 +1,5 @@
 import { Router } from "express";
-import paymentService from "src/services/payment.service";
+import paymentController from "src/controllers/payment.controller";
 // import { paymentMiddleware } from "x402-express";
 
 const paymentRouter = Router();
@@ -27,6 +27,8 @@ const paymentRouter = Router();
 // 	});
 // });
 
-paymentRouter.get("/get/by-pay-to/:pay_to", paymentService.getPaymentsByPayTo);
+paymentRouter.get("/get/by-pay-to/:pay_to", paymentController.getPaymentsByPayTo);
+paymentRouter.get("/get/payment-reqs", paymentController.getPlanPaymentRequirements)
+paymentRouter.get("/pay-plan", paymentController.makePlanPayments)
 
 export default paymentRouter;

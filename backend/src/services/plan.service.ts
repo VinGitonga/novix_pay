@@ -19,4 +19,8 @@ async function getPlansByAccount(account: string) {
 	return await Plan.find({ account: new ObjectId(account) }).lean();
 }
 
-export default { createPlan, getPlansByAccount };
+async function getPlanByUniqueId(uniqueId: string) {
+	return await Plan.findOne({ uniqueId: uniqueId }).populate("account").lean();
+}
+
+export default { createPlan, getPlansByAccount, getPlanByUniqueId };
