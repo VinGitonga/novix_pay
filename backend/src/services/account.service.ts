@@ -65,4 +65,8 @@ const getAccountBySlug = async (slug: string) => {
 	return await Account.findOne({ slug }).lean();
 };
 
-export default { createAccount, getAccountByWallet, getAccountBySlug };
+async function getAccountByTelegramUsername(tg_username: string) {
+	return await Account.findOne({ tg_username: tg_username }).lean();
+}
+
+export default { createAccount, getAccountByWallet, getAccountBySlug, getAccountByTelegramUsername };

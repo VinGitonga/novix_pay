@@ -8,6 +8,7 @@ export interface IAccount {
 	createdAt: string;
 	updatedAt: string;
 	slug: string;
+	chat_id?: string;
 }
 
 type AccountModel = Model<IAccount>;
@@ -17,8 +18,9 @@ const accountSchema = new Schema<IAccount, AccountModel>(
 		username: { type: String, required: true },
 		isProvider: { type: Boolean, default: false },
 		tg_username: { type: String },
-		wallet_address: { type: String, required: true },
+		wallet_address: { type: String },
 		slug: { type: String, required: true },
+		chat_id: { type: String },
 	},
 	{ timestamps: true }
 );

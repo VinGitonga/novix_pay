@@ -8,6 +8,7 @@ import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
 import { User } from "grammy/types";
 import { StructuredTool } from "@langchain/core/tools";
 import { ChatPromptTemplate, MessagesPlaceholder, SystemMessagePromptTemplate } from "@langchain/core/prompts";
+import { makePaymentTool } from "./tools";
 
 const bot = new Bot(TELEGRAM_BOT_TOKEN);
 
@@ -15,6 +16,7 @@ interface AgentConfig {
 	configurable: {
 		thread_id: string;
 		user_id: string;
+		username: string;
 	};
 }
 
@@ -78,21 +80,29 @@ async function createAgent({ llm, tools, system_message }: { llm: ChatOpenAI; to
 	return prompt.pipe(llm.bindTools(formattedTools));
 }
 
-async function initAgent(user_id: string) {
+async function initAgent(user_id: string, username: string) {
 	const llm = new ChatOpenAI({ temperature: 0.7 });
 	const embeddings = new OpenAIEmbeddings();
 
 	memoryStore[user_id] = new MemorySaver();
 
-	const allTools = [];
+	const allTools = [makePaymentTool];
 
 	const agentConfig: AgentConfig = {
-		configurable: { thread_id: user_id, user_id: user_id },
+		configurable: { thread_id: user_id, user_id: user_id, username: username },
 	};
 
-	const toolNode = new ToolNode<typeof MessagesAnnotation.State>([]);
+	const toolNode = new ToolNode<typeof MessagesAnnotation.State>([...allTools]);
 
-	const system_message = "You are NovixPay, a helpful AI assistant assisting users to setup their recurring payments. You can answer any question the user might have.";
+	const currentDate = new Date().toLocaleDateString();
+	const currentTime = new Date().toLocaleTimeString();
+
+	const system_message = `You are NovixPayAgent, a helpful AI assistant assisting users to setup to manage payments on Novix Platform. You can answer any question the user might have.
+	
+	Current Date is ${currentDate} at approximately ${currentTime}.
+
+	You can use the following tools too to assist users: ${allTools.map((tool) => `- **${tool.name}**: ${tool.description}`).join("\n")}
+	`;
 
 	const modelWithTools = llm.bindTools(allTools.map((t) => convertToOpenAITool(t)));
 
@@ -124,10 +134,11 @@ async function handleAndStreamMessage(ctx: Context) {
 	const { from: user } = ctx;
 	const message = ctx.message;
 	const user_id = String(user.id);
+	const username = ctx.from.username;
 
 	let agentData = agentStore[user_id];
 	if (!agentData) {
-		const { agentConfig, app } = await initAgent(user_id);
+		const { agentConfig, app } = await initAgent(user_id, username);
 		agentData = { config: agentConfig, agent: app };
 		agentStore[user_id] = agentData;
 	}
@@ -184,7 +195,7 @@ bot.command("start", async (ctx) => {
 	console.log("here");
 	const { from: user } = ctx;
 	// init agent per user, if no user agent instance (create one)
-	await initAgent(user.id.toString());
+	await initAgent(user.id.toString(), user.username);
 	updateUserState(user, {});
 
 	// should get account details
