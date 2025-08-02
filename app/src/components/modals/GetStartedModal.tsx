@@ -82,7 +82,7 @@ const GetStartedModal = () => {
 									<Button color="danger" variant="flat" type="button" onPress={onClose}>
 										Close
 									</Button>
-									<Button color="primary" type="submit" isLoading={isLoading} isDisabled={isLoading}>
+									<Button color="secondary" type="submit" isLoading={isLoading} isDisabled={isLoading}>
 										Submit
 									</Button>
 								</ModalFooter>
