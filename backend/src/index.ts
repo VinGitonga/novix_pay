@@ -171,7 +171,7 @@ async function main() {
 	});
 	app.use("/api/accounts", accountRouter);
 	app.use("/api/plans", planRouter)
-	// app.use("/api/payments", paymentRouter)
+	app.use("/api/payments", paymentRouter)
 	app.use("/facilitator", facilitatorRouter);
 	app.use(
 		paymentMiddleware(
