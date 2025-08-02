@@ -26,7 +26,7 @@ export function safeClone<T>(obj: T): T {
 
 export const generatePaymentLink = (slug: string, uniqueId: string, paymentType: "one-time" | "recurring" = "one-time"): string => {
 	const appDomain = `${window.location.protocol}//${window.location.hostname}${window.location.port ? `:${window.location.port}` : ""}`;
-	const baseUrl = `${appDomain}/pay/${slug}/${uniqueId}`;
+	const baseUrl = `${appDomain}/make-payments/${slug}/${uniqueId}`;
 	return paymentType === "recurring" ? `${baseUrl}?type=recurring` : `${baseUrl}?type=one-time`
 };
 

@@ -60,6 +60,11 @@ const PaymentCheckout = () => {
 
 	const navigate = useNavigate();
 
+	const copyPaymentLink = () => {
+		navigator.clipboard.writeText(window.location.href);
+		toast.success("Payment link copied to clipboard");
+	};
+
 	const checkUSDCBalance = useCallback(async () => {
 		if (!activeAccount || !businessId || !planId) return;
 
@@ -204,7 +209,7 @@ const PaymentCheckout = () => {
 								<p className="text-muted-foreground">Secure Payment</p>
 							</div>
 						</div>
-						<Button color="secondary" variant="bordered" size="sm">
+						<Button color="secondary" variant="bordered" size="sm" onPress={copyPaymentLink}>
 							<CopyIcon className="h-4 w-4 mr-2" />
 							Copy Link
 						</Button>
