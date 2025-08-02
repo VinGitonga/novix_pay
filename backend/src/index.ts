@@ -13,6 +13,7 @@ import { findMatchingPaymentRequirements, processPriceToAtomicAmount, getNetwork
 import { useFacilitator } from "x402/verify";
 import { exact } from "x402/schemes";
 import { config } from "x402/types/shared/evm";
+import planRouter from "./routes/plan.route";
 
 const app = express();
 
@@ -169,6 +170,7 @@ async function main() {
 		res.send("Hello Novix Pay");
 	});
 	app.use("/api/accounts", accountRouter);
+	app.use("/api/plans", planRouter)
 	// app.use("/api/payments", paymentRouter)
 	app.use("/facilitator", facilitatorRouter);
 	app.use(
