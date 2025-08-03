@@ -9,6 +9,7 @@ import PaymentLinkCheckout from "./pages/PaymentLinkCheckout";
 import PlansPage from "./pages/PlansPage";
 import PaymentCheckout from "./pages/PaymentCheckout";
 import InstantPayments from "./pages/InstantPayments";
+import RecurringPaymentCheckout from "./pages/RecurringPaymentCheckout";
 
 const router = createBrowserRouter([
 	{
@@ -51,8 +52,12 @@ const router = createBrowserRouter([
 			},
 			{
 				path: "instant/payments",
-				element: <InstantPayments />
-			}
+				element: <InstantPayments />,
+			},
+			{
+				path: "recurring-payment-checkout",
+				element: <RecurringPaymentCheckout />,
+			},
 		],
 	},
 ]);

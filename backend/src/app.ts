@@ -107,7 +107,6 @@ async function initAgent(user_id: string, username: string) {
 	`;
 
 	const modelWithTools = llm.bindTools(allTools.map((t) => convertToOpenAITool(t)))
-
 	// const agentModel = await createAgent({ llm, tools: allTools, system_message: "Be brief and concise" });
 	// const model = prompt.pipe(modelWithTools);
 
