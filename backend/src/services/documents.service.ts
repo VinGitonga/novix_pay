@@ -36,7 +36,7 @@ export const upload = multer({
 	},
 });
 
-const uploadFile = async (file: Express.Multer.File, accountId?: string) => {
+const uploadFile = async (file: Express.Multer.File, accountId?: string, price?: number) => {
 	try {
 		const formData = new FormData();
 
@@ -78,7 +78,8 @@ const uploadFile = async (file: Express.Multer.File, accountId?: string) => {
 				size: file.size,
 				type: file.mimetype,
 				cid: response.data.cid,
-				account: accountId
+				account: accountId,
+				price: price || 1
 			});
 		}
 		
@@ -95,6 +96,7 @@ const saveDocumentToDatabase = async (documentData: {
 	type: string;
 	cid: string;
 	account: string;
+	price: number;
 }) => {
 	try {
 		const document = new DocumentItem({
@@ -102,7 +104,8 @@ const saveDocumentToDatabase = async (documentData: {
 			size: documentData.size,
 			type: documentData.type,
 			cid: documentData.cid,
-			account: documentData.account
+			account: documentData.account,
+			price: documentData.price
 		});
 
 		await document.save();

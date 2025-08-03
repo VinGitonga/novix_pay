@@ -11,10 +11,11 @@ async function uploadFile(req: Request, res: ExpressResponse) {
 		});
 	}
 
-	// Extract accountId from request body or query parameters
+	// Extract accountId and price from request body or query parameters
 	const accountId = req.body.accountId || req.query.accountId as string;
+	const price = req.body.price ? parseFloat(req.body.price) : 0;
 
-	const { data, error } = await tryCatch(documentsService.uploadFile(req.file, accountId));
+	const { data, error } = await tryCatch(documentsService.uploadFile(req.file, accountId, price));
 
 	if (error) {
 		return res.status(400).json({

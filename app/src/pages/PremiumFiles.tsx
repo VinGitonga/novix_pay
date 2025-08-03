@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
-import { Plus, File, FileText, Image, Trash2, Upload, Calendar, Eye, Copy, Check, X } from "lucide-react";
-import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from "@heroui/react";
+import { Plus, File, FileText, Image, Trash2, Upload, Calendar, Eye, Copy, Check, X, DollarSign } from "lucide-react";
+import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure, Input } from "@heroui/react";
 import { useAccountStore } from "@/hooks/store/useAccountStore";
 import { API_URL } from "@/constants";
 import { IApiEndpoint } from "@/types/Api";
@@ -14,6 +14,13 @@ const formatFileSize = (bytes: number) => {
 	const sizes = ["Bytes", "KB", "MB", "GB"];
 	const i = Math.floor(Math.log(bytes) / Math.log(k));
 	return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+};
+
+const formatPrice = (price: number) => {
+	return new Intl.NumberFormat('en-US', {
+		style: 'currency',
+		currency: 'USD',
+	}).format(price);
 };
 
 const PremiumFiles = () => {
@@ -148,6 +155,12 @@ const PremiumFiles = () => {
 									<p className="text-sm text-gray-500">{formatFileSize(document.size)}</p>
 								</div>
 
+								{/* Price */}
+								<div className="flex items-center gap-2 text-sm font-medium text-green-600 mb-3">
+									<DollarSign className="w-4 h-4" />
+									{formatPrice(document.price)}
+								</div>
+
 								{/* Upload Date */}
 								<div className="flex items-center gap-2 text-xs text-gray-400">
 									<Calendar className="w-3 h-3" />
@@ -173,6 +186,7 @@ const PremiumFiles = () => {
 const UploadFileModal = ({ onUploadSuccess }: { onUploadSuccess: () => void }) => {
 	const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
 	const [selectedFile, setSelectedFile] = useState<File | null>(null);
+	const [price, setPrice] = useState<string>("0");
 	const [isUploading, setIsUploading] = useState(false);
 	const [uploadProgress, setUploadProgress] = useState(0);
 	const fileInputRef = useRef<HTMLInputElement>(null);
@@ -194,6 +208,7 @@ const UploadFileModal = ({ onUploadSuccess }: { onUploadSuccess: () => void }) =
 		const formData = new FormData();
 		formData.append("file", selectedFile);
 		formData.append("accountId", account._id);
+		formData.append("price", price);
 
 		try {
 			// Simulate upload progress
@@ -224,6 +239,7 @@ const UploadFileModal = ({ onUploadSuccess }: { onUploadSuccess: () => void }) =
 
 			// Reset form and close modal
 			setSelectedFile(null);
+			setPrice("0");
 			onClose();
 
 			// Refresh the documents list
@@ -248,7 +264,7 @@ const UploadFileModal = ({ onUploadSuccess }: { onUploadSuccess: () => void }) =
 				<ModalContent className="font-nunito">
 					{(onClose) => (
 						<>
-							<ModalHeader className="flex flex-col gap-1">Upload File</ModalHeader>
+							<ModalHeader className="flex flex-col gap-1">Upload Premium File</ModalHeader>
 							<ModalBody>
 								{/* File Selection */}
 								<div className="mb-6">
@@ -268,6 +284,26 @@ const UploadFileModal = ({ onUploadSuccess }: { onUploadSuccess: () => void }) =
 										)}
 									</div>
 									<input ref={fileInputRef} type="file" onChange={handleFileSelect} className="hidden" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif,.json,.csv,.xls,.xlsx" />
+								</div>
+
+								{/* Price Input */}
+								<div className="mb-6">
+									<label className="block text-sm font-medium text-gray-700 mb-2">
+										Price (USD)
+									</label>
+									<Input
+										type="number"
+										placeholder="0.00"
+										value={price}
+										onChange={(e) => setPrice(e.target.value)}
+										startContent={<DollarSign className="w-4 h-4 text-gray-400" />}
+										min="0"
+										step="0.01"
+										className="w-full"
+									/>
+									<p className="text-xs text-gray-500 mt-1">
+										Set the price for this premium document
+									</p>
 								</div>
 
 								{/* Upload Progress */}

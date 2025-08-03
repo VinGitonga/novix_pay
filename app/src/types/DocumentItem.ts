@@ -7,6 +7,7 @@ export interface IDocumentItem {
 	type: string;
 	cid: string;
 	account: string | IAccount;
+	price: number;
 	createdAt: string;
 	updatedAt: string;
 }
