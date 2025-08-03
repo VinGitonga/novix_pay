@@ -14,6 +14,7 @@ import { useFacilitator } from "x402/verify";
 import { exact } from "x402/schemes";
 import { config } from "x402/types/shared/evm";
 import planRouter from "./routes/plan.route";
+import usdcRouter from "./routes/usdc-test.route";
 
 const app = express();
 
@@ -172,6 +173,7 @@ async function main() {
 	app.use("/api/accounts", accountRouter);
 	app.use("/api/plans", planRouter)
 	app.use("/api/payments", paymentRouter)
+	app.use("/api/usdc-test", usdcRouter)
 	app.use("/facilitator", facilitatorRouter);
 	app.use(
 		paymentMiddleware(
