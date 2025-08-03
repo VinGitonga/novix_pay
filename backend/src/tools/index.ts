@@ -1,7 +1,19 @@
 import { tool } from "@langchain/core/tools";
 import { RunnableConfig } from "@langchain/core/runnables";
 import { z } from "zod";
-import { CLIENT_URL, API_BASE_URL } from "src/constants";
+import { CLIENT_URL, API_BASE_URL, WALLET_PRIVATE_KEY } from "src/constants";
+import { privateKeyToAccount } from "viem/accounts";
+import { createWalletClient, http } from "viem";
+import { etherlinkTestnetChain } from "src/utils";
+import axios from "axios";
+import { withPaymentInterceptor } from "x402-axios";
+
+const account = privateKeyToAccount(`0x${WALLET_PRIVATE_KEY}`);
+const walletClient = createWalletClient({ account, chain: etherlinkTestnetChain, transport: http() });
+
+const axiosInstance = axios.create({ baseURL: API_BASE_URL });
+
+const api = withPaymentInterceptor(axiosInstance as any, walletClient.account as any);
 
 export const makePaymentTool = tool(
 	async ({ wallet_address, amount }, config: RunnableConfig) => {
@@ -133,5 +145,59 @@ export const getMySubscriptionsTool = tool(
 		name: "getMySubscriptions",
 		description: "Retrieves and displays all active and inactive subscriptions for the current user, including payment details, due dates, status, and transaction information.",
 		schema: z.object({}),
+	}
+);
+
+export const accessPremiumFileTool = tool(
+	async ({ url_link }, config: RunnableConfig) => {
+		let userTelegramId = config["configurable"]["user_id"];
+		let username = config["configurable"]["username"];
+
+		if (!url_link) {
+			return `❌ *Error:* Please provide a valid URL link to access the premium file`;
+		}
+
+		// Extract docId from the URL if it's a full URL
+		let docId = url_link;
+		if (url_link.includes("docId=")) {
+			docId = url_link.split("docId=")[1];
+		}
+
+		try {
+			// First, process the payment for document access
+			const paymentResponse = await api.get(`/payments/pay-document?docId=${docId}`);
+
+			if (paymentResponse.data && paymentResponse.data.status === "success") {
+				// Payment successful, now get the document data
+				const documentResponse = await api.get(`/documents/document-item?docId=${docId}`);
+
+				if (documentResponse.data && documentResponse.data.status === "success") {
+					const fileUrl = documentResponse.data.data;
+					const paymentData = paymentResponse.data.data;
+
+					return `*🔓 Premium File Access Granted*\n\n✅ *Status:* Payment successful and file access granted\n\n*File Details:*\n• *Document ID:* \`${docId}\`\n• *Transaction Hash:* \`${
+						paymentData.savedPayment?.transaction || "N/A"
+					}\`\n• *Amount Paid:* ${paymentData.savedPayment?.amount || "N/A"} USDC\n\n📄 *File URL:*\n[Click here to access the file](${fileUrl})\n\n⚠️ *Note:* The file is now accessible at the link above\\.`;
+				} else {
+					return `❌ *Error:* Payment successful but unable to retrieve file data. Please try again.`;
+				}
+			} else {
+				return `❌ *Error:* Unable to process payment for file access. Please try again.`;
+			}
+		} catch (err: any) {
+			console.log("Error accessing premium file:", err);
+
+			if (err.response?.data?.msg) {
+				return `❌ *Error:* ${err.response.data.msg}`;
+			}
+
+			return `❌ *Error:* Something went wrong while processing the payment for file access. Please try again.`;
+		}
+	},
+	{
+		name: "accessPremiumFile",
+		description:
+			"This tool processes payment for premium file access and then retrieves the file URL. It first calls the payment endpoint to process the X402 payment, then calls the document data endpoint to get the actual file URL.",
+		schema: z.object({ url_link: z.string().describe("URL link in Novix platform to access the file item") }),
 	}
 );

@@ -8,7 +8,7 @@ import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
 import { User } from "grammy/types";
 import { StructuredTool } from "@langchain/core/tools";
 import { ChatPromptTemplate, MessagesPlaceholder, SystemMessagePromptTemplate } from "@langchain/core/prompts";
-import { getMySubscriptionsTool, makePaymentTool, setupRecurringPayment } from "./tools";
+import { accessPremiumFileTool, getMySubscriptionsTool, makePaymentTool, setupRecurringPayment } from "./tools";
 
 const bot = new Bot(TELEGRAM_BOT_TOKEN);
 
@@ -86,7 +86,7 @@ async function initAgent(user_id: string, username: string) {
 
 	memoryStore[user_id] = new MemorySaver();
 
-	const allTools = [makePaymentTool, setupRecurringPayment, getMySubscriptionsTool];
+	const allTools = [makePaymentTool, setupRecurringPayment, getMySubscriptionsTool, accessPremiumFileTool];
 
 	const agentConfig: AgentConfig = {
 		configurable: { thread_id: user_id, user_id: user_id, username: username },
