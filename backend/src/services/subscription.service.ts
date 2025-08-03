@@ -32,7 +32,18 @@ async function getSubsByPayer(payer: string) {
 			$regex: `^${payer}$`,
 			$options: "i",
 		},
-	});
+	}).lean();
 }
 
-export default { createNewSubscription, updateSubscriptionPlan, getActiveSubscriptionsDue, getSubsByPayer };
+async function getSubsByUserTgId(tg_id: string) {
+	try {
+		return await Subscription.find({
+			tg_id: tg_id,
+		}).lean();
+	} catch (error) {
+		console.log("Error", error);
+		return [];
+	}
+}
+
+export default { createNewSubscription, updateSubscriptionPlan, getActiveSubscriptionsDue, getSubsByPayer, getSubsByUserTgId };

@@ -39,4 +39,17 @@ async function getSubsByPayer(req: Request, res: ExpressResponse) {
 	res.status(200).json({ status: "success", data, msg: "Subscription retrived successfully" });
 }
 
-export default { createNewSubscription, updateSubscriptionPlan, getSubsByPayer };
+async function getSubsByUserTgId(req: Request, res: ExpressResponse) {
+	const tg_id = req.params.tg_id;
+
+	const { data, error } = await tryCatch(subscriptionService.getSubsByUserTgId(tg_id));
+
+	if (error) {
+		res.status(400).json({ status: "error", msg: "Unable retrive the subscriptions" });
+		return;
+	}
+
+	res.status(200).json({ status: "success", data, msg: "Subscription retrived successfully" });
+}
+
+export default { createNewSubscription, updateSubscriptionPlan, getSubsByPayer, getSubsByUserTgId };

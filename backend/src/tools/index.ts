@@ -1,7 +1,7 @@
 import { tool } from "@langchain/core/tools";
 import { RunnableConfig } from "@langchain/core/runnables";
 import { z } from "zod";
-import { CLIENT_URL } from "src/constants";
+import { CLIENT_URL, API_BASE_URL } from "src/constants";
 
 export const makePaymentTool = tool(
 	async ({ wallet_address, amount }, config: RunnableConfig) => {
@@ -9,14 +9,16 @@ export const makePaymentTool = tool(
 		let username = config["configurable"]["username"];
 
 		if (!wallet_address) {
-			return `Kindly provide the wallet address for the person being paid`;
+			return `❌ *Error:* Kindly provide the wallet address for the person being paid`;
 		}
 
 		if (!amount || amount <= 0) {
-			return `Amount to pay them has to be greater than 0`;
+			return `❌ *Error:* Amount to pay them has to be greater than 0`;
 		}
 
-		return `Payment link generated successfully. Please click on this link: ${CLIENT_URL}/instant/payments?account=${wallet_address}&amt=${amount}&u=${username}&tg_id=${userTelegramId}`;
+		const paymentUrl = `${CLIENT_URL}/instant/payments?account=${wallet_address}&amt=${amount}&u=${username}&tg_id=${userTelegramId}`;
+
+		return `*💳 Instant Payment Link Generated*\n\n✅ *Status:* Payment link created successfully\n\n*Details:*\n• *Recipient:* \`${wallet_address}\`\n• *Amount:* ${amount} USDC\n\n🔗 *Payment Link:*\n[Click here to complete payment](${paymentUrl})\n\n⚠️ *Note:* Click the link above to proceed with the payment transaction\\.`;
 	},
 	{
 		name: "makePayment",
@@ -34,24 +36,33 @@ export const setupRecurringPayment = tool(
 		let username = config["configurable"]["username"];
 
 		if (!wallet_address) {
-			return `Kindly provide the wallet address for the person being paid`;
+			return `❌ *Error:* Kindly provide the wallet address for the person being paid`;
 		}
 
 		if (!amount || amount <= 0) {
-			return `Amount to pay them has to be greater than 0`;
+			return `❌ *Error:* Amount to pay them has to be greater than 0`;
 		}
 
 		if (!dueDate) {
-			return `Please provide a due date for the payment`;
+			return `❌ *Error:* Please provide a due date for the payment`;
 		}
 
 		if (!frequency) {
-			return `Provide how frequent the payment should run`;
+			return `❌ *Error:* Provide how frequent the payment should run`;
 		}
 
-		return `Recurremt Payments link generated successfully. Please click on this link: ${CLIENT_URL}/recurring-payment-checkout?wallet=${wallet_address}&amount=${amount}&dueDate=${dueDate}&recurring=${recurring}&frequency=${frequency}&description=${
+		const recurringUrl = `${CLIENT_URL}/recurring-payment-checkout?wallet=${wallet_address}&amount=${amount}&dueDate=${dueDate}&recurring=${recurring}&frequency=${frequency}&description=${
 			description ?? ""
 		}&u=${username}&tg_id=${userTelegramId}`;
+
+		const formattedDueDate = new Date(dueDate).toLocaleDateString();
+		const frequencyEmoji = frequency === "weekly" ? "📅" : frequency === "monthly" ? "📆" : "📊";
+
+		return `*🔄 Recurring Payment Setup*\n\n✅ *Status:* Recurring payment link generated successfully\n\n*Payment Details:*\n• *Recipient:* \`${wallet_address}\`\n• *Amount:* ${amount} USDC\n• *Due Date:* ${formattedDueDate}\n• *Frequency:* ${frequencyEmoji} ${frequency}\n• *Type:* ${
+			recurring ? "🔄 Recurring" : "📅 One\\-time"
+		}\n${
+			description ? `• *Description:* ${description}\n` : ""
+		}\n🔗 *Setup Link:*\n[Click here to setup recurring payment](${recurringUrl})\n\n⚠️ *Note:* Click the link above to configure and sign the recurring payment transaction\\.`;
 	},
 	{
 		name: "setupRecurringPayments",
@@ -64,5 +75,63 @@ export const setupRecurringPayment = tool(
 			frequency: z.string().describe("How frequent the payment should be made. It should be either : 'weekly' or 'monthly' or 'yearly'"),
 			description: z.string().optional().describe("Reason or the topic of the recurrent payment. e.g. Monthly spotify subscription payment"),
 		}),
+	}
+);
+
+export const getMySubscriptionsTool = tool(
+	async ({}, config: RunnableConfig) => {
+		try {
+			let userTelegramId = config["configurable"]["user_id"];
+			const response = await fetch(`${API_BASE_URL}/subscriptions/get/by-telegram/${userTelegramId}`);
+
+			if (!response.ok) {
+				console.log(`HTTP Error: ${response.status} ${response.statusText}`);
+				return `❌ *Error:* Unable to retrieve your subscriptions at the moment`;
+			}
+
+			const result = await response.json();
+
+			if (result.status !== "success") {
+				console.log(`API Error:`, result.msg);
+				return `❌ *Error:* ${result.msg || "Unable to retrieve your subscriptions"}`;
+			}
+
+			const subs = result.data || [];
+
+			if (!subs || subs.length === 0) {
+				return `📭 *No Subscriptions Found*\n\nYou don't have any subscriptions yet\\.`;
+			}
+
+			let markdown = `*📋 Your Subscriptions*\n\n`;
+
+			subs.forEach((sub: any, index: number) => {
+				const dueDate = new Date(sub.dueDate).toLocaleString();
+				const status = sub.active ? (sub.executed ? "✅ Completed" : "⏰ Pending") : "❌ Inactive";
+				const recurring = sub.isRecurring ? "🔄 Recurring" : "📅 One\\-time";
+
+				markdown += `*Subscription ${index + 1}*\n\n`;
+				markdown += `• *Provider:* ${sub.provider}\n`;
+				markdown += `• *Amount:* ${sub.amount} ${sub.token}\n`;
+				markdown += `• *Due Date:* ${dueDate}\n`;
+				markdown += `• *Status:* ${status}\n`;
+				markdown += `• *Type:* ${recurring}\n`;
+
+				if (sub.tx) {
+					markdown += `• *Transaction:* \`${sub.tx}\`\n`;
+				}
+
+				markdown += `\n\\-\\-\\-\n\n`;
+			});
+
+			return markdown;
+		} catch (err) {
+			console.log(`Fetch Error:`, err);
+			return `❌ *Error:* Something went wrong while fetching your subscriptions`;
+		}
+	},
+	{
+		name: "getMySubscriptions",
+		description: "Retrieves and displays all active and inactive subscriptions for the current user, including payment details, due dates, status, and transaction information.",
+		schema: z.object({}),
 	}
 );

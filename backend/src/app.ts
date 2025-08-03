@@ -8,7 +8,7 @@ import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
 import { User } from "grammy/types";
 import { StructuredTool } from "@langchain/core/tools";
 import { ChatPromptTemplate, MessagesPlaceholder, SystemMessagePromptTemplate } from "@langchain/core/prompts";
-import { makePaymentTool, setupRecurringPayment } from "./tools";
+import { getMySubscriptionsTool, makePaymentTool, setupRecurringPayment } from "./tools";
 
 const bot = new Bot(TELEGRAM_BOT_TOKEN);
 
@@ -86,7 +86,7 @@ async function initAgent(user_id: string, username: string) {
 
 	memoryStore[user_id] = new MemorySaver();
 
-	const allTools = [makePaymentTool, setupRecurringPayment];
+	const allTools = [makePaymentTool, setupRecurringPayment, getMySubscriptionsTool];
 
 	const agentConfig: AgentConfig = {
 		configurable: { thread_id: user_id, user_id: user_id, username: username },
@@ -106,7 +106,7 @@ async function initAgent(user_id: string, username: string) {
 	Generate output in markdown format.
 	`;
 
-	const modelWithTools = llm.bindTools(allTools.map((t) => convertToOpenAITool(t)))
+	const modelWithTools = llm.bindTools(allTools.map((t) => convertToOpenAITool(t)));
 	// const agentModel = await createAgent({ llm, tools: allTools, system_message: "Be brief and concise" });
 	// const model = prompt.pipe(modelWithTools);
 
@@ -175,7 +175,7 @@ async function handleAndStreamMessage(ctx: Context) {
 				if (content) {
 					response += content + "\n";
 					console.log("response", response);
-					const escapedResponse = response.replace(/([\\_*`|!.[\](){}>+#=~-])/gm, '\\$1');
+					const escapedResponse = response.replace(/([\\_*`|!.[\](){}>+#=~-])/gm, "\\$1");
 					await ctx.api.editMessageText(ctx.chat.id, sentMessage.message_id, escapedResponse, { parse_mode: "MarkdownV2" });
 				}
 			}
@@ -187,8 +187,8 @@ async function handleAndStreamMessage(ctx: Context) {
 	if (state.next.includes("askHuman")) {
 		const lastMessage = state.values.messages[state.values.messages.length - 1] as BaseMessage;
 		response = `${lastMessage.content}\nPlease respond with 'approve', 'reject', or 'adjust' (with JSON, e.g., {\"amount\": 500}).`;
-		const escapedResponse = response.replace(/([\\_*`|!.[\](){}>+#=~-])/gm, '\\$1');
-		await ctx.api.editMessageText(ctx.chat.id, sentMessage.message_id, escapedResponse, {parse_mode: "MarkdownV2"});
+		const escapedResponse = response.replace(/([\\_*`|!.[\](){}>+#=~-])/gm, "\\$1");
+		await ctx.api.editMessageText(ctx.chat.id, sentMessage.message_id, escapedResponse, { parse_mode: "MarkdownV2" });
 	}
 }
 
@@ -203,7 +203,7 @@ bot.command("start", async (ctx) => {
 
 	const welcomeMsg = `Welcome to NovixPay, an AI Agent to assist you to manage your recurring payments.`;
 
-	await sendReply(ctx, welcomeMsg.replace(/([\\_*`|!.[\](){}>+#=~-])/gm, '\\$1'), { parse_mode: "MarkdownV2" });
+	await sendReply(ctx, welcomeMsg.replace(/([\\_*`|!.[\](){}>+#=~-])/gm, "\\$1"), { parse_mode: "MarkdownV2" });
 });
 
 bot.on("message:text", async (ctx) => {
@@ -211,3 +211,5 @@ bot.on("message:text", async (ctx) => {
 });
 
 bot.start();
+
+// export { bot };

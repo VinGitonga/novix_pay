@@ -242,12 +242,13 @@ async function main() {
 		}
 	});
 
-	app.get(/(.*)/, (req: express.Request, res: express.Response) => {
-		res.status(500).json({ success: false, msg: "Internal Server Error" });
-	});
-
 	app.listen(APP_PORT, () => {
 		logger.info(`Server started at http://localhost:${APP_PORT}`);
+	});
+
+	// Catch-all route should be the very last route
+	app.get(/(.*)/, (req: express.Request, res: express.Response) => {
+		res.status(404).json({ success: false, msg: "Route not found" });
 	});
 }
 
