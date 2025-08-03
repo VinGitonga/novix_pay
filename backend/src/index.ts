@@ -15,6 +15,7 @@ import { exact } from "x402/schemes";
 import { config } from "x402/types/shared/evm";
 import planRouter from "./routes/plan.route";
 import usdcRouter from "./routes/usdc-test.route";
+import subscriptionRouter from "./routes/subscription.route";
 
 const app = express();
 
@@ -174,6 +175,7 @@ async function main() {
 	app.use("/api/plans", planRouter)
 	app.use("/api/payments", paymentRouter)
 	app.use("/api/usdc-test", usdcRouter)
+	app.use("/api/subscriptions", subscriptionRouter)
 	app.use("/facilitator", facilitatorRouter);
 	app.use(
 		paymentMiddleware(

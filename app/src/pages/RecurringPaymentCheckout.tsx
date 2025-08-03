@@ -17,6 +17,7 @@ import { recurringPaymentABI } from "@/contracts/abi";
 import { useThirdwebStore } from "@/hooks/store/useThirdwebStore";
 import { CONTRACT_ADDRESS, USDC_CONTRACT_ADDRESS } from "@/constants";
 import { getApprovalForTransaction } from "thirdweb/extensions/erc20";
+import useSubscriptionUtils, { type TCreateSubscription } from "@/hooks/useSubscriptionUtils";
 
 const publicClient = createPublicClient({ chain: etherlinkTestnetChain, transport: http() }).extend(publicActions);
 
@@ -25,6 +26,7 @@ const RecurringPaymentCheckout = () => {
 	const activeAccount = useActiveAccount();
 	const navigate = useNavigate();
 	const { client } = useThirdwebStore();
+	const { createSubscription } = useSubscriptionUtils();
 
 	// Get search params
 	const targetWallet = searchParams.get("wallet") || "";
@@ -33,10 +35,13 @@ const RecurringPaymentCheckout = () => {
 	const description = searchParams.get("description") || "Recurring Payment";
 	const isRecurring = searchParams.get("recurring") === "true";
 	const frequency = searchParams.get("frequency") || "monthly"; // weekly, monthly, yearly
+	const tg_username = searchParams.get("u") || "";
+	const tg_id = searchParams.get("tg_id") || "";
 
 	const [usdcBalance, setUsdcBalance] = useState<string>("0");
 	const [isProcessing, setIsProcessing] = useState<boolean>(false);
 	const [paymentSuccess, setPaymentSuccess] = useState<boolean>(false);
+	const [paymentTx, setPaymentTx] = useState<string>("");
 	const [isValidParams, setIsValidParams] = useState<boolean>(true);
 	const [autoApprove, setAutoApprove] = useState<boolean>(false);
 
@@ -76,7 +81,7 @@ const RecurringPaymentCheckout = () => {
 
 		const interval = differenceInMilliseconds(nextDueDate, new Date(currentDueDate));
 
-		return interval;
+		return { interval, nextDueDate };
 	};
 
 	const handlePayment = async () => {
@@ -110,7 +115,9 @@ const RecurringPaymentCheckout = () => {
 		const dueDateBigInt = BigInt(dueDateUnix);
 		const amtInDecimals = parseUnits(amount, 6);
 
-		const computedInterval = BigInt(computeInterval(frequency as any, dueDate));
+		const { interval, nextDueDate } = computeInterval(frequency as any, dueDate);
+
+		const computedInterval = BigInt(interval);
 
 		const preparedContractCall = prepareContractCall({
 			contract,
@@ -150,8 +157,25 @@ const RecurringPaymentCheckout = () => {
 			chain: defineChain(etherlinkTestnetChain.id),
 			transactionHash: transaction.transactionHash,
 		});
+
+		setPaymentTx(receipt.transactionHash);
 		setIsProcessing(false);
 		setPaymentSuccess(true);
+
+		const dataToSave = {
+			payer: activeAccount.address,
+			provider: targetWallet,
+			amount: parseFloat(amount),
+			token: USDC_CONTRACT_ADDRESS,
+			dueDate: nextDueDate,
+			isRecurring: true,
+			interval: interval,
+			tx: receipt.transactionHash,
+			tg_name: tg_username,
+			tg_id: tg_id,
+		} satisfies TCreateSubscription;
+
+		const {} = await tryCatch(createSubscription(dataToSave));
 	};
 
 	// Validate search params on component mount

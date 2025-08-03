@@ -14,6 +14,7 @@ export interface ISubscription {
 	executed: boolean;
 	tg_name?: string;
 	tg_id?: string;
+	tx?: string;
 }
 
 type SubscriptionModel = Model<ISubscription>;
@@ -31,6 +32,7 @@ const subscriptionSchema = new Schema<ISubscription, SubscriptionModel>(
 		executed: { type: Boolean, default: false },
 		tg_id: { type: String },
 		tg_name: { type: String },
+		tx: { type: String },
 	},
 	{ timestamps: true }
 );
