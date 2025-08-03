@@ -26,6 +26,9 @@ export const enum IApiEndpoint {
 
 	USDC_GET_TEST_TOKENS = "usdc-test/get/test-tokens",
 	CREATE_SUBSCRIPTION = "subscriptions/create",
+
+	UPLOAD_DOCUMENT = "documents/upload",
+	GET_DOCUMENTS_BY_ACCOUNT = "documents/get/by-account"
 }
 
 export interface IMethodParams {

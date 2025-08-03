@@ -48,12 +48,12 @@ const data = {
 		{
 			title: "Plans",
 			url: "/app/plans",
-			icon: IconFolder,
+			icon: IconUsers,
 		},
 		{
-			title: "Team",
-			url: "#",
-			icon: IconUsers,
+			title: "Files",
+			url: "/app/files",
+			icon: IconFolder,
 		},
 	],
 	navClouds: [

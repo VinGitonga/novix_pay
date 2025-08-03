@@ -10,6 +10,7 @@ import PlansPage from "./pages/PlansPage";
 import PaymentCheckout from "./pages/PaymentCheckout";
 import InstantPayments from "./pages/InstantPayments";
 import RecurringPaymentCheckout from "./pages/RecurringPaymentCheckout";
+import PremiumFiles from "./pages/PremiumFiles";
 
 const router = createBrowserRouter([
 	{
@@ -39,6 +40,10 @@ const router = createBrowserRouter([
 					{
 						path: "plans",
 						element: <PlansPage />,
+					},
+					{
+						path: "files",
+						element: <PremiumFiles />,
 					},
 				],
 			},
