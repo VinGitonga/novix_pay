@@ -25,7 +25,16 @@ const usePaymentsUtils = () => {
 		[get]
 	);
 
-	return { getPaymentRequirements, getInstantPaymentRequirements };
+	const getUSDCTestTokens = useCallback(
+		async (wallet_address: string) => {
+			const resp = await get<IApiResponse<object>>({ endpoint: `${IApiEndpoint.USDC_GET_TEST_TOKENS}/${wallet_address}` as IApiEndpoint });
+
+			return resp.data;
+		},
+		[get]
+	);
+
+	return { getPaymentRequirements, getInstantPaymentRequirements, getUSDCTestTokens };
 };
 
 export default usePaymentsUtils;

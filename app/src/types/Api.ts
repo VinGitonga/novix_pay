@@ -22,7 +22,9 @@ export const enum IApiEndpoint {
 	GET_PAYMENT_REQUIREMENTS = "payments/get/payment-reqs",
 	MAKE_PAYMENT_FOR_PLAN = "payments/pay-plan",
 	GET_INSTANT_PAYMENT_REQUIREMENTS = "payments/get/instant/payment-reqs",
-	MAKE_INSTANT_PAYMENT = "payments/pay-instant"
+	MAKE_INSTANT_PAYMENT = "payments/pay-instant",
+
+	USDC_GET_TEST_TOKENS = "usdc-test/get/test-tokens"
 }
 
 export interface IMethodParams {
