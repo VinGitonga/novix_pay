@@ -12,6 +12,8 @@ export interface ISubscription {
 	createdAt: string;
 	updatedAt: string;
 	executed: boolean;
+	tg_name?: string;
+	tg_id?: string;
 }
 
 type SubscriptionModel = Model<ISubscription>;
@@ -27,6 +29,8 @@ const subscriptionSchema = new Schema<ISubscription, SubscriptionModel>(
 		interval: { type: Number }, // interval in milliseconds
 		active: { type: Boolean, default: true },
 		executed: { type: Boolean, default: false },
+		tg_id: { type: String },
+		tg_name: { type: String },
 	},
 	{ timestamps: true }
 );
