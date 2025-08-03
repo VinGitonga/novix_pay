@@ -1,3 +1,4 @@
+import GetUSDCTokensBtn from "@/components/btns/GetUSDCTokensBtn";
 import ThirdwebConnectBtn from "@/components/ThirdwebConnectBtn";
 import { formatAmount } from "@/lib/utils";
 import { Button, Card, CardBody, CardFooter, CardHeader, Chip, Divider, Input, Switch } from "@heroui/react";
@@ -364,6 +365,7 @@ const RecurringPaymentCheckout = () => {
 												</div>
 											</div>
 										)}
+										<GetUSDCTokensBtn />
 									</div>
 								</CardBody>
 							</Card>
