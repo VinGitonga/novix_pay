@@ -8,6 +8,7 @@ export interface IDocumentItem {
 	cid: string;
 	account: string | IAccount;
 	price: number;
+	uniqueId: string;
 	createdAt: string;
 	updatedAt: string;
 }

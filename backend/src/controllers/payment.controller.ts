@@ -3,6 +3,7 @@ import { API_BASE_URL, FACILITATOR_URL } from "src/constants";
 import { tryCatch } from "src/helpers/try-catch";
 import { IAccount } from "src/models/account.model";
 import accountService from "src/services/account.service";
+import documentsService from "src/services/documents.service";
 import paymentService from "src/services/payment.service";
 import planService from "src/services/plan.service";
 import { ExpressResponse } from "src/types/Api";
@@ -187,6 +188,7 @@ async function makePlanPayments(req: Request, res: ExpressResponse) {
 				accepts: {},
 			},
 		});
+		return;
 	}
 
 	const price = planDetails.price;
@@ -241,12 +243,12 @@ async function getInstantPaymentsRequirements(req: Request, res: ExpressResponse
 
 	if (!account || !amt) {
 		res.status(400).json({ status: "error", msg: `Amount and target address is required` });
-		return
+		return;
 	}
 
 	if (parseFloat(amt as string) <= 0) {
 		res.status(400).json({ status: "error", msg: `Amount must be greater than 0` });
-		return
+		return;
 	}
 
 	const resource = `${API_BASE_URL}/payments/pay-instant?account=${account}&amt=${amt}` as Resource;
@@ -306,4 +308,69 @@ async function payInstantPayment(req: Request, res: ExpressResponse) {
 	}
 }
 
-export default { getPaymentsByPayTo, getPlanPaymentRequirements, makePlanPayments, getInstantPaymentsRequirements, payInstantPayment };
+async function payPremiumDocument(req: Request, res: ExpressResponse) {
+	const { docId } = req.query;
+
+	const documentItem = await documentsService.getDocumentByUniqueId(docId as string);
+
+	if (!documentItem) {
+		res.status(402).json({
+			status: "error",
+			msg: "Document not found",
+			errors: {
+				x402Version,
+				error: "Missing document",
+				accepts: {},
+			},
+		});
+		return;
+	}
+
+	const price = documentItem.price;
+
+	const resource = `${req.protocol}://${req.headers.host}${req.originalUrl}` as Resource;
+
+	const paymentRequirements = [createExactPaymentRequirements(price, "etherlink-testnet", resource, (documentItem.account as IAccount).wallet_address, `Pay for Plan : ${documentItem.name}`)];
+
+	const isValid = await verifyPayment(req, res, paymentRequirements);
+
+	if (!isValid) return;
+
+	try {
+		const settleResponse = await settle(exact.evm.decodePayment(req.header("X-PAYMENT")!), paymentRequirements[0]);
+
+		const responseHeader = settleResponseHeader(settleResponse);
+
+		// save the payment to database
+		const dataToSave = {
+			amount: documentItem.price,
+			payer: settleResponse.payer,
+			payTo: (documentItem.account as IAccount).wallet_address,
+			transaction: settleResponse.transaction,
+		};
+
+		const { data: savedPayment, error } = await tryCatch(paymentService.createPaymentItem(dataToSave));
+
+		res.setHeader("X-PAYMENT-RESPONSE", responseHeader);
+
+		res.status(200).json({
+			status: "success",
+			data: {
+				savedPayment,
+			},
+		});
+	} catch (err) {
+		console.log(err);
+		res.status(402).json({
+			status: "error",
+			msg: "Unable to settle the payment at the moment, please try again.",
+			errors: {
+				x402Version,
+				error: err,
+				accepts: paymentRequirements,
+			},
+		});
+	}
+}
+
+export default { getPaymentsByPayTo, getPlanPaymentRequirements, makePlanPayments, getInstantPaymentsRequirements, payInstantPayment, payPremiumDocument };

@@ -1,5 +1,6 @@
 import { Request } from "express";
 import multer from "multer";
+import { nanoid } from "nanoid";
 import { PINATA_JWT } from "src/constants";
 import { DocumentItem } from "src/models/document.model";
 
@@ -61,14 +62,14 @@ const uploadFile = async (file: Express.Multer.File, accountId?: string, price?:
 
 		const response = await request.json();
 
-		console.log(response)
-		
+		console.log(response);
+
 		const uploadResult = {
 			originalname: file.originalname,
 			mimetype: file.mimetype,
 			size: file.size,
 			pinataHash: response.data.ipfs_hash,
-			pinataUrl: `https://gateway.pinata.cloud/ipfs/${response.data.ipfs_hash}`
+			pinataUrl: `https://gateway.pinata.cloud/ipfs/${response.data.ipfs_hash}`,
 		};
 
 		// Save document details to database
@@ -79,73 +80,75 @@ const uploadFile = async (file: Express.Multer.File, accountId?: string, price?:
 				type: file.mimetype,
 				cid: response.data.cid,
 				account: accountId,
-				price: price || 1
+				price: price || 1,
 			});
 		}
-		
+
 		return uploadResult;
 	} catch (error) {
-		console.error('Pinata upload error:', error);
-		throw new Error('Failed to upload file to IPFS');
+		console.error("Pinata upload error:", error);
+		throw new Error("Failed to upload file to IPFS");
 	}
 };
 
-const saveDocumentToDatabase = async (documentData: {
-	name: string;
-	size: number;
-	type: string;
-	cid: string;
-	account: string;
-	price: number;
-}) => {
+const saveDocumentToDatabase = async (documentData: { name: string; size: number; type: string; cid: string; account: string; price: number }) => {
 	try {
+		const uniqueId = nanoid(8);
+
 		const document = new DocumentItem({
 			name: documentData.name,
 			size: documentData.size,
 			type: documentData.type,
 			cid: documentData.cid,
 			account: documentData.account,
-			price: documentData.price
+			price: documentData.price,
+			uniqueId: uniqueId,
 		});
 
 		await document.save();
-		console.log('Document saved to database:', document._id);
+		console.log("Document saved to database:", document._id);
 		return document;
 	} catch (error) {
-		console.error('Error saving document to database:', error);
-		throw new Error('Failed to save document to database');
+		console.error("Error saving document to database:", error);
+		throw new Error("Failed to save document to database");
 	}
 };
 
 const getDocumentsByAccount = async (accountId: string) => {
 	try {
-		const documents = await DocumentItem.find({ account: accountId })
-			.sort({ createdAt: -1 })
-			.populate('account', 'wallet_address');
-		
+		const documents = await DocumentItem.find({ account: accountId }).sort({ createdAt: -1 }).populate("account", "wallet_address");
+
 		return documents;
 	} catch (error) {
-		console.error('Error fetching documents:', error);
-		throw new Error('Failed to fetch documents');
+		console.error("Error fetching documents:", error);
+		throw new Error("Failed to fetch documents");
 	}
 };
 
 const deleteDocument = async (documentId: string, accountId: string) => {
 	try {
-		const document = await DocumentItem.findOneAndDelete({ 
-			_id: documentId, 
-			account: accountId 
+		const document = await DocumentItem.findOneAndDelete({
+			_id: documentId,
+			account: accountId,
 		});
-		
+
 		if (!document) {
-			throw new Error('Document not found or access denied');
+			throw new Error("Document not found or access denied");
 		}
-		
+
 		return document;
 	} catch (error) {
-		console.error('Error deleting document:', error);
-		throw new Error('Failed to delete document');
+		console.error("Error deleting document:", error);
+		throw new Error("Failed to delete document");
 	}
+};
+
+const getDocumentById = async (docId: string) => {
+	return await DocumentItem.findById(docId).lean();
+};
+
+const getDocumentByUniqueId = async (docId: string) => {
+	return await DocumentItem.findOne({ uniqueId: docId }).populate("account").lean()
 };
 
 export default {
@@ -154,4 +157,6 @@ export default {
 	saveDocumentToDatabase,
 	getDocumentsByAccount,
 	deleteDocument,
+	getDocumentById,
+	getDocumentByUniqueId
 };

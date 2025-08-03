@@ -32,5 +32,6 @@ paymentRouter.get("/get/payment-reqs", paymentController.getPlanPaymentRequireme
 paymentRouter.get("/pay-plan", paymentController.makePlanPayments);
 paymentRouter.get("/get/instant/payment-reqs", paymentController.getInstantPaymentsRequirements);
 paymentRouter.get("/pay-instant", paymentController.payInstantPayment);
+paymentRouter.get("/pay-document", paymentController.payPremiumDocument);
 
 export default paymentRouter;

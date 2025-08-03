@@ -8,6 +8,7 @@ export interface IDocumentItem {
 	cid: string;
 	account: string | IAccount;
 	price: number;
+	uniqueId: string;
 	createdAt: string;
 	updatedAt: string;
 }
@@ -22,6 +23,7 @@ const documentItemSchema = new Schema<IDocumentItem, DocumentItemModel>(
 		cid: { type: String, required: true },
 		account: { type: mongoose.Types.ObjectId, ref: "Account" },
 		price: { type: Number, required: true, default: 0, min: 0 },
+		uniqueId: { type: String, required: true },
 	},
 	{ timestamps: true }
 );
