@@ -90,7 +90,7 @@ const RecurringPaymentCheckout = () => {
 			return;
 		}
 
-		const isDueDate_date = isDate(dueDate);
+		const isDueDate_date = isDate(new Date(dueDate));
 		if (!isDueDate_date) {
 			toast.error("Due date has to be a date");
 			return;
