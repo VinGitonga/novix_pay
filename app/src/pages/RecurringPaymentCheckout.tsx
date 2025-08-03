@@ -1,17 +1,30 @@
 import GetUSDCTokensBtn from "@/components/btns/GetUSDCTokensBtn";
 import ThirdwebConnectBtn from "@/components/ThirdwebConnectBtn";
+import { tryCatch } from "@/helpers/try-catch";
+import { etherlinkTestnetChain } from "@/lib/etherlink";
 import { formatAmount } from "@/lib/utils";
 import { Button, Card, CardBody, CardFooter, CardHeader, Chip, Divider, Input, Switch } from "@heroui/react";
 import { ArrowLeftIcon, CheckCircleIcon, CopyIcon, CreditCardIcon, DollarSignIcon, WalletIcon, XCircleIcon, ExternalLinkIcon, CalendarIcon, RepeatIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import { useActiveAccount } from "thirdweb/react";
+import { createPublicClient, formatUnits, http, parseUnits, publicActions } from "viem";
+import { getUSDCBalance } from "x402/shared/evm";
+import { add, differenceInMilliseconds, getUnixTime, isDate, isFuture } from "date-fns";
+import { defineChain, getContract, prepareContractCall, sendAndConfirmTransaction, waitForReceipt } from "thirdweb";
+import { recurringPaymentABI } from "@/contracts/abi";
+import { useThirdwebStore } from "@/hooks/store/useThirdwebStore";
+import { CONTRACT_ADDRESS, USDC_CONTRACT_ADDRESS } from "@/constants";
+import { getApprovalForTransaction } from "thirdweb/extensions/erc20";
+
+const publicClient = createPublicClient({ chain: etherlinkTestnetChain, transport: http() }).extend(publicActions);
 
 const RecurringPaymentCheckout = () => {
 	const [searchParams] = useSearchParams();
 	const activeAccount = useActiveAccount();
 	const navigate = useNavigate();
+	const { client } = useThirdwebStore();
 
 	// Get search params
 	const targetWallet = searchParams.get("wallet") || "";
@@ -32,20 +45,113 @@ const RecurringPaymentCheckout = () => {
 		toast.success("Payment link copied to clipboard");
 	};
 
+	const checkUSDCBalance = useCallback(async () => {
+		if (!activeAccount) return;
+
+		const { data: balance, error } = await tryCatch(getUSDCBalance(publicClient as any, activeAccount.address as `0x${string}`));
+		if (error) {
+		}
+		if (balance) {
+			const formattedBalance = formatUnits(balance, 6);
+			setUsdcBalance(formattedBalance);
+		}
+	}, [activeAccount, publicClient]);
+
+	const computeInterval = (frequency: "weekly" | "monthly" | "yearly", currentDueDate: string) => {
+		let nextDueDate = new Date(currentDueDate);
+
+		if (frequency === "weekly") {
+			nextDueDate = add(new Date(currentDueDate), {
+				weeks: 1,
+			});
+		} else if (frequency === "monthly") {
+			nextDueDate = add(new Date(currentDueDate), {
+				months: 1,
+			});
+		} else if (frequency === "yearly") {
+			nextDueDate = add(new Date(currentDueDate), {
+				years: 1,
+			});
+		}
+
+		const interval = differenceInMilliseconds(nextDueDate, new Date(currentDueDate));
+
+		return interval;
+	};
+
 	const handlePayment = async () => {
 		if (!targetWallet || !amount || !activeAccount) {
 			toast.error("Please connect your wallet and ensure all parameters are valid");
 			return;
 		}
 
+		const isDueDate_date = isDate(dueDate);
+		if (!isDueDate_date) {
+			toast.error("Due date has to be a date");
+			return;
+		}
+
+		// check if dueDate is in the future
+		const isDueDateInFuture = isFuture(new Date(dueDate));
+
+		if (!isDueDateInFuture) {
+			toast.error("Due date has to be in the future");
+			return;
+		}
+
+		const contract = getContract({
+			abi: recurringPaymentABI,
+			client: client!,
+			chain: defineChain(etherlinkTestnetChain.id),
+			address: CONTRACT_ADDRESS,
+		});
+
+		const dueDateUnix = getUnixTime(new Date(dueDate));
+		const dueDateBigInt = BigInt(dueDateUnix);
+		const amtInDecimals = parseUnits(amount, 6);
+
+		const computedInterval = BigInt(computeInterval(frequency as any, dueDate));
+
+		const preparedContractCall = prepareContractCall({
+			contract,
+			method: "schedulePayment",
+			params: [targetWallet, amtInDecimals, USDC_CONTRACT_ADDRESS, dueDateBigInt, true, computedInterval],
+			erc20Value: {
+				amountWei: amtInDecimals,
+				tokenAddress: USDC_CONTRACT_ADDRESS,
+			},
+		});
+
 		setIsProcessing(true);
-		
-		// Simulate payment processing
-		setTimeout(() => {
-			setIsProcessing(false);
-			setPaymentSuccess(true);
-			toast.success("Recurring payment setup successful");
-		}, 2000);
+
+		const approvalTx = await getApprovalForTransaction({
+			transaction: preparedContractCall as any,
+			account: activeAccount,
+		});
+
+		if (approvalTx) {
+			const approvalReceipt = await sendAndConfirmTransaction({
+				transaction: approvalTx,
+				account: activeAccount,
+			});
+			console.log("Approval transaction receipt:", approvalReceipt);
+		} else {
+			console.log("No approval needed (already sufficient allowance).");
+		}
+
+		// Send the schedulePayment transaction
+		const transaction = await sendAndConfirmTransaction({
+			transaction: preparedContractCall,
+			account: activeAccount,
+		});
+
+		const receipt = await waitForReceipt({
+			client: client!,
+			chain: defineChain(etherlinkTestnetChain.id),
+			transactionHash: transaction.transactionHash,
+		});
+		setIsProcessing(false);
+		setPaymentSuccess(true);
 	};
 
 	// Validate search params on component mount
@@ -58,8 +164,7 @@ const RecurringPaymentCheckout = () => {
 	// Simulate USDC balance check
 	useEffect(() => {
 		if (activeAccount) {
-			// Simulate balance check
-			setUsdcBalance("150.50");
+			checkUSDCBalance();
 		}
 	}, [activeAccount]);
 
@@ -74,27 +179,27 @@ const RecurringPaymentCheckout = () => {
 			const now = new Date();
 			const isToday = date.toDateString() === now.toDateString();
 			const isTomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000).toDateString() === date.toDateString();
-			
+
 			// Check if the date includes time (has hours/minutes)
-			const hasTime = dateString.includes('T') || dateString.includes(' ') || dateString.includes(':');
-			
+			const hasTime = dateString.includes("T") || dateString.includes(" ") || dateString.includes(":");
+
 			if (hasTime) {
 				// Format with time
 				const timeOptions: Intl.DateTimeFormatOptions = {
-					hour: 'numeric',
-					minute: '2-digit',
-					hour12: true
+					hour: "numeric",
+					minute: "2-digit",
+					hour12: true,
 				};
-				
+
 				const dateOptions: Intl.DateTimeFormatOptions = {
-					year: 'numeric',
-					month: 'long',
-					day: 'numeric'
+					year: "numeric",
+					month: "long",
+					day: "numeric",
 				};
-				
-				const timeString = date.toLocaleTimeString('en-US', timeOptions);
-				const dateString = date.toLocaleDateString('en-US', dateOptions);
-				
+
+				const timeString = date.toLocaleTimeString("en-US", timeOptions);
+				const dateString = date.toLocaleDateString("en-US", dateOptions);
+
 				if (isToday) {
 					return `Today at ${timeString}`;
 				} else if (isTomorrow) {
@@ -105,17 +210,17 @@ const RecurringPaymentCheckout = () => {
 			} else {
 				// Format without time
 				const dateOptions: Intl.DateTimeFormatOptions = {
-					year: 'numeric',
-					month: 'long',
-					day: 'numeric'
+					year: "numeric",
+					month: "long",
+					day: "numeric",
 				};
-				
+
 				if (isToday) {
-					return 'Today';
+					return "Today";
 				} else if (isTomorrow) {
-					return 'Tomorrow';
+					return "Tomorrow";
 				} else {
-					return date.toLocaleDateString('en-US', dateOptions);
+					return date.toLocaleDateString("en-US", dateOptions);
 				}
 			}
 		} catch {
@@ -126,10 +231,14 @@ const RecurringPaymentCheckout = () => {
 	// Get frequency display text
 	const getFrequencyText = (freq: string) => {
 		switch (freq) {
-			case 'weekly': return 'Weekly';
-			case 'monthly': return 'Monthly';
-			case 'yearly': return 'Yearly';
-			default: return 'Monthly';
+			case "weekly":
+				return "Weekly";
+			case "monthly":
+				return "Monthly";
+			case "yearly":
+				return "Yearly";
+			default:
+				return "Monthly";
 		}
 	};
 
@@ -163,10 +272,10 @@ const RecurringPaymentCheckout = () => {
 							<p className="text-muted-foreground mb-4">Your recurring payment has been configured successfully.</p>
 							<div className="space-y-2 mb-6">
 								<p className="text-sm text-muted-foreground">Amount: {formatAmount(amount)}</p>
-								<p className="text-sm text-muted-foreground">To: {targetWallet.slice(0, 6)}...{targetWallet.slice(-4)}</p>
-								{isRecurring && (
-									<p className="text-sm text-muted-foreground">Frequency: {getFrequencyText(frequency)}</p>
-								)}
+								<p className="text-sm text-muted-foreground">
+									To: {targetWallet.slice(0, 6)}...{targetWallet.slice(-4)}
+								</p>
+								{isRecurring && <p className="text-sm text-muted-foreground">Frequency: {getFrequencyText(frequency)}</p>}
 							</div>
 							<Button onPress={() => navigate("/")}>
 								<ArrowLeftIcon className="h-4 w-4 mr-2" />
@@ -216,25 +325,13 @@ const RecurringPaymentCheckout = () => {
 								<div className="space-y-4">
 									<div>
 										<label className="text-sm font-medium text-muted-foreground mb-2 block">Description</label>
-										<Input
-											value={description}
-											isReadOnly
-											variant="bordered"
-											placeholder="Payment description"
-											className="w-full"
-										/>
+										<Input value={description} isReadOnly variant="bordered" placeholder="Payment description" className="w-full" />
 									</div>
-									
+
 									<div>
 										<label className="text-sm font-medium text-muted-foreground mb-2 block">Target Wallet Address</label>
 										<div className="flex items-center space-x-2">
-											<Input
-												value={targetWallet}
-												isReadOnly
-												variant="bordered"
-												placeholder="0x..."
-												className="w-full font-mono text-sm"
-											/>
+											<Input value={targetWallet} isReadOnly variant="bordered" placeholder="0x..." className="w-full font-mono text-sm" />
 											<Button
 												isIconOnly
 												size="sm"
@@ -242,16 +339,10 @@ const RecurringPaymentCheckout = () => {
 												onPress={() => {
 													navigator.clipboard.writeText(targetWallet);
 													toast.success("Wallet address copied");
-												}}
-											>
+												}}>
 												<CopyIcon className="h-4 w-4" />
 											</Button>
-											<Button
-												isIconOnly
-												size="sm"
-												variant="bordered"
-												onPress={() => window.open(`https://testnet.explorer.etherlink.com/address/${targetWallet}`, '_blank')}
-											>
+											<Button isIconOnly size="sm" variant="bordered" onPress={() => window.open(`https://testnet.explorer.etherlink.com/address/${targetWallet}`, "_blank")}>
 												<ExternalLinkIcon className="h-4 w-4" />
 											</Button>
 										</div>
@@ -259,14 +350,7 @@ const RecurringPaymentCheckout = () => {
 
 									<div>
 										<label className="text-sm font-medium text-muted-foreground mb-2 block">Amount (USDC)</label>
-										<Input
-											value={amount}
-											isReadOnly
-											variant="bordered"
-											placeholder="0.00"
-											startContent={<DollarSignIcon className="h-4 w-4 text-muted-foreground" />}
-											className="w-full"
-										/>
+										<Input value={amount} isReadOnly variant="bordered" placeholder="0.00" startContent={<DollarSignIcon className="h-4 w-4 text-muted-foreground" />} className="w-full" />
 									</div>
 
 									<div>
@@ -286,16 +370,10 @@ const RecurringPaymentCheckout = () => {
 											<RepeatIcon className="h-5 w-5 text-purple-600" />
 											<div>
 												<label className="text-sm font-medium text-gray-900">Recurring Payment</label>
-												<p className="text-xs text-muted-foreground">
-													{isRecurring ? `${getFrequencyText(frequency)} payments` : "One-time payment"}
-												</p>
+												<p className="text-xs text-muted-foreground">{isRecurring ? `${getFrequencyText(frequency)} payments` : "One-time payment"}</p>
 											</div>
 										</div>
-										<Chip 
-											size="sm" 
-											color={isRecurring ? "secondary" : "default"}
-											variant={isRecurring ? "solid" : "bordered"}
-										>
+										<Chip size="sm" color={isRecurring ? "secondary" : "default"} variant={isRecurring ? "solid" : "bordered"}>
 											{isRecurring ? getFrequencyText(frequency) : "One-time"}
 										</Chip>
 									</div>
@@ -389,11 +467,7 @@ const RecurringPaymentCheckout = () => {
 												<label className="text-sm font-medium text-gray-900">Auto-approve future payments</label>
 												<p className="text-xs text-muted-foreground">Automatically approve recurring payments without manual confirmation</p>
 											</div>
-											<Switch
-												isSelected={autoApprove}
-												onValueChange={setAutoApprove}
-												color="secondary"
-											/>
+											<Switch isSelected={autoApprove} onValueChange={setAutoApprove} color="secondary" />
 										</div>
 										{autoApprove && (
 											<div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -438,14 +512,7 @@ const RecurringPaymentCheckout = () => {
 								</div>
 
 								<div className="space-y-3">
-									<Button 
-										size="lg" 
-										color="secondary" 
-										onPress={handlePayment} 
-										isLoading={isProcessing || !isConnected || hasInsufficientBalance} 
-										isDisabled={isProcessing}
-										className="w-full"
-									>
+									<Button size="lg" color="secondary" onPress={handlePayment} isLoading={isProcessing || !isConnected || hasInsufficientBalance} isDisabled={isProcessing} className="w-full">
 										{isProcessing ? "Processing..." : isRecurring ? `Setup ${getFrequencyText(frequency)} Payment` : `Pay ${formatAmount(amount)}`}
 									</Button>
 
@@ -454,18 +521,12 @@ const RecurringPaymentCheckout = () => {
 										<p className="font-mono text-xs break-all mt-1">
 											{targetWallet.slice(0, 10)}...{targetWallet.slice(-8)}
 										</p>
-										{isRecurring && (
-											<p className="mt-2 text-xs text-purple-600">
-												Recurring {getFrequencyText(frequency).toLowerCase()} payments
-											</p>
-										)}
+										{isRecurring && <p className="mt-2 text-xs text-purple-600">Recurring {getFrequencyText(frequency).toLowerCase()} payments</p>}
 									</div>
 								</div>
 							</CardBody>
 							<CardFooter>
-								<div className="text-xs text-muted-foreground text-center w-full">
-									Powered by Novix Pay with x402 • Secure USDC payments
-								</div>
+								<div className="text-xs text-muted-foreground text-center w-full">Powered by Novix Pay with x402 • Secure USDC payments</div>
 							</CardFooter>
 						</Card>
 					</div>
