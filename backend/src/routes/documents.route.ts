@@ -10,6 +10,8 @@ documentsRouter.post("/upload", upload.single("file"), documentsController.uploa
 // Get documents by account
 documentsRouter.get("/get/by-account/:accountId", documentsController.getDocumentsByAccount);
 
+documentsRouter.get("/document-item", documentsController.getDocumentData)
+
 // Delete document
 documentsRouter.delete("/remove/:documentId/account/:accountId", documentsController.deleteDocument);
 

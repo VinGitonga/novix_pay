@@ -12,7 +12,7 @@ async function uploadFile(req: Request, res: ExpressResponse) {
 	}
 
 	// Extract accountId and price from request body or query parameters
-	const accountId = req.body.accountId || req.query.accountId as string;
+	const accountId = req.body.accountId || (req.query.accountId as string);
 	const price = req.body.price ? parseFloat(req.body.price) : 0;
 
 	const { data, error } = await tryCatch(documentsService.uploadFile(req.file, accountId, price));
@@ -83,8 +83,20 @@ async function deleteDocument(req: Request, res: ExpressResponse) {
 	});
 }
 
-export default { 
+async function getDocumentData(req: Request, res: ExpressResponse) {
+	const { data, error } = await tryCatch(documentsService.getDocumentData(req.query.docId as string));
+
+	if (error) {
+		res.status(400).json({ status: "error", errors: error });
+		return;
+	}
+
+	res.status(200).json({ status: "success", data });
+}
+
+export default {
 	uploadFile,
 	getDocumentsByAccount,
-	deleteDocument
+	deleteDocument,
+	getDocumentData
 };

@@ -1,8 +1,14 @@
 import { Request } from "express";
 import multer from "multer";
 import { nanoid } from "nanoid";
-import { PINATA_JWT } from "src/constants";
+import { PINATA_GATEWAY, PINATA_JWT } from "src/constants";
 import { DocumentItem } from "src/models/document.model";
+import { PinataSDK } from "pinata";
+
+const pinata = new PinataSDK({
+	pinataJwt: PINATA_JWT!,
+	pinataGateway: PINATA_GATEWAY,
+});
 
 const storage = multer.memoryStorage();
 
@@ -148,7 +154,17 @@ const getDocumentById = async (docId: string) => {
 };
 
 const getDocumentByUniqueId = async (docId: string) => {
-	return await DocumentItem.findOne({ uniqueId: docId }).populate("account").lean()
+	return await DocumentItem.findOne({ uniqueId: docId }).populate("account").lean();
+};
+
+const getDocumentData = async (docId: string) => {
+	const document = await getDocumentByUniqueId(docId);
+
+	// const { data, contentType } = await pinata.gateways.public.get(document.cid);
+
+	const url = await pinata.gateways.public.convert(document.cid);
+
+	return url;
 };
 
 export default {
@@ -158,5 +174,6 @@ export default {
 	getDocumentsByAccount,
 	deleteDocument,
 	getDocumentById,
-	getDocumentByUniqueId
+	getDocumentByUniqueId,
+	getDocumentData,
 };
