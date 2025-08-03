@@ -50,7 +50,7 @@ const PremiumFiles = () => {
 	};
 
 	const copyDownloadLink = async (document: IDocumentItem) => {
-		const downloadLink = `http://localhost:8745/api/documents/files/${document._id}/download`;
+		const downloadLink = `${API_URL}/${IApiEndpoint.PAY_PREMIUM_DOCUMENT}?docId=${document.uniqueId}`;
 		try {
 			await navigator.clipboard.writeText(downloadLink);
 			setCopiedId(document._id);
