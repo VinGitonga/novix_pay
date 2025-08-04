@@ -36,15 +36,15 @@ const data = {
 			icon: IconDashboard,
 		},
 		{
-			title: "Subscriptions",
-			url: "/app/subscriptions",
+			title: "Payments",
+			url: "/app/payments",
 			icon: IconListDetails,
 		},
-		{
-			title: "Pay",
-			url: "/app/pay-with-usdc",
-			icon: IconChartBar,
-		},
+		// {
+		// 	title: "Pay",
+		// 	url: "/app/pay-with-usdc",
+		// 	icon: IconChartBar,
+		// },
 		{
 			title: "Plans",
 			url: "/app/plans",

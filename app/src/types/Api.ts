@@ -24,6 +24,7 @@ export const enum IApiEndpoint {
 	GET_INSTANT_PAYMENT_REQUIREMENTS = "payments/get/instant/payment-reqs",
 	MAKE_INSTANT_PAYMENT = "payments/pay-instant",
 	PAY_PREMIUM_DOCUMENT = "payments/pay-document",
+	GET_PAYMENTS_BY_PAY_TO = "payments/get/by-pay-to",
 
 	USDC_GET_TEST_TOKENS = "usdc-test/get/test-tokens",
 	CREATE_SUBSCRIPTION = "subscriptions/create",

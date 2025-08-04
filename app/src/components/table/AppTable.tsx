@@ -13,7 +13,7 @@ export interface IAppTableColumn {
 	dateField?: boolean;
 }
 
-type IProps<T extends object & { id?: string }> = {
+type IProps<T extends object & { _id?: string }> = {
 	title: string;
 	data: T[];
 	count: number;
@@ -41,7 +41,7 @@ type IProps<T extends object & { id?: string }> = {
 	hideSearch?: boolean;
 };
 
-const AppTable = <T extends object & { id?: string }>({
+const AppTable = <T extends object & { _id?: string }>({
 	title,
 	data,
 	count,
@@ -69,7 +69,7 @@ const AppTable = <T extends object & { id?: string }>({
 	hideSearch = false,
 }: IProps<T>) => {
 	const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
-		column: "id",
+		column: "_id",
 		direction: "descending",
 	});
 
@@ -269,7 +269,7 @@ const AppTable = <T extends object & { id?: string }>({
 				</TableHeader>
 				<TableBody emptyContent={emptyContent} items={sortedItems} loadingState={loadingState} loadingContent={<Spinner color="primary" />}>
 					{(item) => (
-						<TableRow key={item.id}>
+						<TableRow key={item._id}>
 							{(columnKey) => (
 								<TableCell>
 									<div className="text-xs">{renderCell(item, columnKey)}</div>

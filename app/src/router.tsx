@@ -11,6 +11,7 @@ import PaymentCheckout from "./pages/PaymentCheckout";
 import InstantPayments from "./pages/InstantPayments";
 import RecurringPaymentCheckout from "./pages/RecurringPaymentCheckout";
 import PremiumFiles from "./pages/PremiumFiles";
+import CompanyPayments from "./pages/CompanyPayments";
 
 const router = createBrowserRouter([
 	{
@@ -45,6 +46,10 @@ const router = createBrowserRouter([
 						path: "files",
 						element: <PremiumFiles />,
 					},
+					{
+						path: "payments",
+						element: <CompanyPayments />
+					}
 				],
 			},
 			{
