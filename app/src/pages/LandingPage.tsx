@@ -32,14 +32,17 @@ const LandingPage = () => {
 	const navigate = useNavigate();
 
 	const openTelegram = () => {
-		window.open("https://t.me/NovixPayBot", "_blank")
-	}
+		window.open("https://t.me/NovixPayBot", "_blank");
+	};
 	return (
 		<div className="min-h-screen overflow-y-auto w-screen text-white bg-[#130D26] pt-4">
 			<div className="mt-2 flex items-center justify-between px-20">
-				<Link to={"/"}>
-					<Img src="/images/logo.png" className="w-48" width={100} height={100} alt="Logo" />
-				</Link>
+				<div className="flex items-center gap-3">
+					<Link to={"/"}>
+						<Img src="/images/logo2.png" className="w-20" width={100} height={100} alt="Logo" />
+					</Link>
+					<h1 className="text-5xl font-bold">Novix Pay</h1>
+				</div>
 				<div className="flex items-center gap-4">
 					<HomeLink href="/" isActive text="Home" />
 					<HomeLink href="/" text="Features" />
@@ -129,7 +132,13 @@ const LandingPage = () => {
 					<hr className="border-white w-full" />
 				</div>
 				<div className="flex items-center justify-between py-5 px-8">
-					<Img src="/images/logo.png" className="w-32" width={100} height={50} alt="Logo" />
+					<div className="flex items-center gap-3">
+						<Link to={"/"}>
+							<Img src="/images/logo2.png" className="w-12" width={100} height={100} alt="Logo" />
+						</Link>
+						<h1 className="text-3xl font-bold">Novix Pay</h1>
+					</div>
+					{/* <Img src="/images/logo.png" className="w-32" width={100} height={50} alt="Logo" /> */}
 					<p>&copy; 2025 Novix Pay. All Rights Reserved. </p>
 					<CiGlobe className="w-6 h-6" />
 				</div>
