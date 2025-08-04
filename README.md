@@ -1,6 +1,6 @@
 ## Novix Pay
 
-Novix Pay is payment service provider for onchain payments directly with HTTP Protocol. By taking advantage of x402 protocol, we enable seamless, secure, and automated payments for data and digital services, bridging the gap between the decentralized web and its foundational communication layer.
+Novix Pay is payment service gateway and platform for onchain payments directly with HTTP Protocol. By taking advantage of x402 protocol, we enable seamless, secure, and automated payments for data and digital services, bridging the gap between the decentralized web and its foundational communication layer.
 
 ### Inspiration 💡
 The foundational architecture of the internet (HTTP) and the payment layer (blockchain) have always been separate. This gap creates significant friction for the Web3 economy, especially for autonomous agents and the modern user who expects seamlessness.
