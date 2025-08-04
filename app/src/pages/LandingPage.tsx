@@ -5,9 +5,10 @@ import { type ReactNode } from "react";
 import { CiGlobe } from "react-icons/ci";
 import ThirdwebConnectBtn from "@/components/ThirdwebConnectBtn";
 import { Link, useNavigate } from "react-router";
-import { Button, cn } from "@heroui/react";
+import { Button, cn, Tooltip } from "@heroui/react";
 import { useAccountStore } from "@/hooks/store/useAccountStore";
 import GetStartedModal from "@/components/modals/GetStartedModal";
+import { FaTelegram } from "react-icons/fa6";
 
 interface HomeLinkProps {
 	isActive?: boolean;
@@ -28,7 +29,11 @@ interface StepItemProps {
 
 const LandingPage = () => {
 	const { account } = useAccountStore();
-	const navigate = useNavigate()
+	const navigate = useNavigate();
+
+	const openTelegram = () => {
+		window.open("https://t.me/NovixPayBot", "_blank")
+	}
 	return (
 		<div className="min-h-screen overflow-y-auto w-screen text-white bg-[#130D26] pt-4">
 			<div className="mt-2 flex items-center justify-between px-20">
@@ -57,6 +62,11 @@ const LandingPage = () => {
 						<ThirdwebConnectBtn />
 						{!account && <GetStartedModal />}
 						{account && <Button onPress={() => navigate("/app")}>Go to Dashboard</Button>}
+						<Tooltip content={"Access Telegram"}>
+							<Button isIconOnly onPress={openTelegram}>
+								<FaTelegram className="w-5 h-5" />
+							</Button>
+						</Tooltip>
 					</div>
 				</div>
 				<div className="col-auto md:col-span-4">
@@ -71,15 +81,26 @@ const LandingPage = () => {
 					<div className="text-center space-y-4">
 						<h1 className="text-4xl font-semibold">Why Choose Novix Pay?</h1>
 						<p className="text-lg px-10">
-							Nova brings the traditional chama model to the blockchain. Save for shared goals, lend with fairness, and invest in bold ideas—all with the trust of DeFi. Built for Base Sepolia's secure
-							testnet, Nova makes group finance accessible with just a few clicks.
+							We believe on-chain payments should be frictionless, not frustrating. We've built a platform that simplifies payments, so you can focus on building the future of the decentralized web.
 						</p>
 					</div>
 					<div className="grid grid-cols-1 md:grid-cols-4 gap-5 mt-15">
-						<FeatureCard title="Pool & Save" description="Deposit as little as 5 usd to the shared pool to grow together." icon={<TbWallet className="w-6 h-6" />} />
-						<FeatureCard title="Request Loans" description="Apply for loans with fair rates (0-20%), approved by group votes." icon={<TbMoneybag className="w-6 h-6" />} />
-						<FeatureCard title="Vote as a Team" description="Every member votes on loans and investments to keep funds wise and fair." icon={<TbBox className="w-6 h-6" />} />
-						<FeatureCard title="Track Portfolio" description="Monitor contributions, balances, and history in real time." icon={<TbLayout2 className="w-6 h-6" />} />
+						<FeatureCard
+							title="Flexible Payment Rails"
+							description="Choose the right payment model for your service. Use our smart contracts for recurring payments and subscriptions, or our x402-based solution for instant, pay-per-use microtransactions."
+							icon={<TbWallet className="w-6 h-6" />}
+						/>
+						<FeatureCard title="Simple & Secure Integration" description="No complex blockchain knowledge is required to accept on-chain payments." icon={<TbMoneybag className="w-6 h-6" />} />
+						<FeatureCard
+							title="Powered by Etherlink"
+							description="Our platform is designed to handle payments with a focus on fast and low-cost transactions on the Etherlink network"
+							icon={<TbBox className="w-6 h-6" />}
+						/>
+						<FeatureCard
+							title="Stablecoin Native"
+							description="All transactions are settled in stablecoins (USDC), providing a reliable and non-volatile payment experience for both you and your customers."
+							icon={<TbLayout2 className="w-6 h-6" />}
+						/>
 					</div>
 				</div>
 			</div>
@@ -87,12 +108,12 @@ const LandingPage = () => {
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 					<Img src={"/images/steps-img.png"} className="w-full" width={100} height={100} alt="Steps" />
 					<div className="pt-5">
-						<h1 className="font-semibold text-3xl">4 Steps to Join the Chama with Nova</h1>
+						<h1 className="font-semibold text-3xl">3 Steps to Pay or Get Paid</h1>
 						<div className="space-y-6 mt-4">
-							<StepItem title="Connect Wallet" description="Link your Base Sepolia wallet in seconds." />
-							<StepItem title="Deposit Funds" description="Add USD or ETH to the shared pool." />
-							<StepItem title="Lend/Invest" description="Apply for loans or propose projects." />
-							<StepItem title="Track Progress" description="Watch your portfolio grow" />
+							<StepItem title="Connect Wallet" description="Link your Etherlink wallet in seconds." />
+							<StepItem title="Generate a link" description="Using Telegram AI agent or the Dashboard generate a payment link" />
+							<StepItem title="Pay or Share" description="Link generated can be used to be pay used by others to pay" />
+							{/* <StepItem title="Track Progress" description="Watch your portfolio grow" /> */}
 						</div>
 					</div>
 				</div>
@@ -103,13 +124,13 @@ const LandingPage = () => {
 				</div>
 				<div className="flex flex-col items-center space-y-8 z-20 relative">
 					<h1 className="text-3xl font-semibold">Ready to Start?</h1>
-					<p className="text-lg">Connect your wallet and join the chama revolution today!</p>
+					<p className="text-lg">Connect your wallet and join the Novix Pay revolution today!</p>
 					<ThirdwebConnectBtn />
 					<hr className="border-white w-full" />
 				</div>
 				<div className="flex items-center justify-between py-5 px-8">
 					<Img src="/images/logo.png" className="w-32" width={100} height={50} alt="Logo" />
-					<p>&copy; 2025 Nova. All Rights Reserved. </p>
+					<p>&copy; 2025 Novix Pay. All Rights Reserved. </p>
 					<CiGlobe className="w-6 h-6" />
 				</div>
 			</div>
