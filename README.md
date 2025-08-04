@@ -34,7 +34,25 @@ AI agents can now act as independent economic actors.
 - For Businesses: Businesses get a unified dashboard to generate payment links for both one-time and recurring payments. They can track all revenue from AI agents and users, and manage everything from one place.
 
 ### 📸 Screenshots
+![Screenshot 2](https://firebasestorage.googleapis.com/v0/b/carepulse-00.firebasestorage.app/o/Screenshot%202025-08-04%20at%2006.02.10.png?alt=media&token=405e382b-2679-4b8f-8ea1-17045e7c7980)
 
+![Screenshot 3](https://firebasestorage.googleapis.com/v0/b/carepulse-00.firebasestorage.app/o/Screenshot%202025-08-04%20at%2006.02.30.png?alt=media&token=c7cb0586-0d25-4c14-b535-854a798f9b18)
+
+![Screenshot 4](https://firebasestorage.googleapis.com/v0/b/carepulse-00.firebasestorage.app/o/Screenshot%202025-08-04%20at%2006.02.43.png?alt=media&token=9c29218b-6219-4e6d-a797-88bf82d957b8)
+
+![Screenshot 5](https://firebasestorage.googleapis.com/v0/b/carepulse-00.firebasestorage.app/o/Screenshot%202025-08-04%20at%2006.02.53.png?alt=media&token=b1b3b2f3-6bb8-45ba-b606-fd3db5504440)
+
+![Screenshot 6](https://firebasestorage.googleapis.com/v0/b/carepulse-00.firebasestorage.app/o/Screenshot%202025-08-04%20at%2006.05.29.png?alt=media&token=a0549374-1342-44cb-9f50-b620fcbe81c3)
+
+![Screenshot 7](https://firebasestorage.googleapis.com/v0/b/carepulse-00.firebasestorage.app/o/Screenshot%202025-08-04%20at%2006.09.19.png?alt=media&token=62784beb-c0c8-4bf5-8a74-170dbe672472)
+
+![Screenshot 8](https://firebasestorage.googleapis.com/v0/b/carepulse-00.firebasestorage.app/o/Screenshot%202025-08-04%20at%2006.46.11.png?alt=media&token=b1fa86e2-605e-4af7-a9f8-96d96622d612)
+
+![Screenshot 9](https://firebasestorage.googleapis.com/v0/b/carepulse-00.firebasestorage.app/o/Screenshot%202025-08-04%20at%2006.46.25.png?alt=media&token=9204f9b7-d7a1-416e-ae32-c8d72438e18e)
+
+![Screenshot 10](https://firebasestorage.googleapis.com/v0/b/carepulse-00.firebasestorage.app/o/Screenshot%202025-08-04%20at%2006.46.47.png?alt=media&token=72943882-46b7-4965-ab1c-3e424c00e9ed)
+
+![Screenshot 11](https://firebasestorage.googleapis.com/v0/b/carepulse-00.firebasestorage.app/o/Screenshot%202025-08-04%20at%2007.04.56.png?alt=media&token=a0ac81b4-2911-477b-9372-127d660dff4a)
 
 ### Sponsor Tech
 This project has been built using Etherlink & Thirdweb
