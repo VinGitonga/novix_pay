@@ -1,7 +1,6 @@
 import * as React from "react";
 import {
 	IconCamera,
-	IconChartBar,
 	IconDashboard,
 	IconDatabase,
 	IconFileAi,
@@ -161,7 +160,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 				<NavSecondary items={data.navSecondary} className="mt-auto" />
 			</SidebarContent>
 			<SidebarFooter>
-				<NavUser user={data.user} />
+				<NavUser />
 			</SidebarFooter>
 		</Sidebar>
 	);
